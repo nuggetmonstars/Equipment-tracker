@@ -1,0 +1,836 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Mini Monstars Equipment Tracker</title>
+<link href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@400;500;600;700&display=swap" rel="stylesheet">
+<style>
+*{box-sizing:border-box;margin:0;padding:0}
+body{font-family:"DM Sans",Arial,sans-serif;background:#F4F4F4;color:#111;font-size:14px}
+.stripe{height:4px;background:linear-gradient(90deg,#CC0000 0%,#CC0000 40%,#6699CC 40%,#6699CC 70%,#F5C400 70%)}
+header{background:#111;padding:12px 20px;display:flex;align-items:center;justify-content:space-between;position:sticky;top:0;z-index:50}
+.brand{display:flex;align-items:center;gap:10px}
+.logo{width:36px;height:36px;background:#CC0000;border-radius:7px;display:flex;align-items:center;justify-content:center;font-weight:700;color:white;font-size:16px}
+.bn{color:white;font-weight:700;font-size:14px}
+.bs{color:#F5C400;font-size:9px;letter-spacing:2px;text-transform:uppercase}
+.live{display:flex;align-items:center;gap:5px;font-size:10px;font-weight:600;color:#4ade80}
+.dot{width:6px;height:6px;border-radius:50%;background:#4ade80;animation:p 1.5s infinite}
+@keyframes p{0%,100%{opacity:1}50%{opacity:.3}}
+nav{background:white;border-bottom:1px solid #E0E0E0;display:flex;padding:0 20px;overflow-x:auto}
+.nt{padding:12px 15px;font-size:12px;font-weight:600;color:#888;cursor:pointer;border-bottom:3px solid transparent;white-space:nowrap;background:none;border-top:none;border-left:none;border-right:none;font-family:inherit}
+.nt:hover{color:#111}
+.nt.on{color:#CC0000;border-bottom-color:#CC0000}
+main{padding:18px;max-width:1500px;margin:0 auto}
+.view{display:none}.view.on{display:block}
+.g2{display:grid;grid-template-columns:1fr 1fr;gap:12px}
+.g4{display:grid;grid-template-columns:repeat(4,1fr);gap:12px}
+.g5{display:grid;grid-template-columns:repeat(5,minmax(0,1fr));gap:10px}
+.mb{margin-bottom:12px}
+.kpi{background:white;border-radius:10px;padding:16px;border:1px solid #E0E0E0;border-top:4px solid #ccc}
+.kl{font-size:9px;font-weight:700;color:#888;letter-spacing:1.5px;text-transform:uppercase;margin-bottom:5px}
+.kv{font-size:30px;font-weight:700;line-height:1}
+.ks{font-size:11px;color:#888;margin-top:3px}
+.card{background:white;border-radius:10px;padding:16px;border:1px solid #E0E0E0;margin-bottom:12px}
+.ct{font-size:10px;font-weight:700;color:#888;text-transform:uppercase;letter-spacing:1px;margin-bottom:10px}
+.al{display:flex;gap:8px;padding:9px 11px;border-radius:7px;margin-bottom:7px;font-size:12px;line-height:1.5;border-left:3px solid}
+.al.r{background:#FDECEA;border-color:#CC0000}
+.al.g{background:#EAF7EE;border-color:#27AE60}
+.al.b{background:#EBF2FA;border-color:#6699CC}
+.alt{font-weight:700;margin-bottom:1px}
+.filt{display:flex;gap:5px;margin-bottom:10px;flex-wrap:wrap}
+.sf{padding:4px 10px;border-radius:18px;font-size:11px;font-weight:600;cursor:pointer;border:1px solid #E0E0E0;background:white;color:#888;font-family:inherit}
+.sf.on{background:#111;color:white;border-color:#111}
+.cgrid{display:grid;grid-template-columns:repeat(auto-fill,minmax(280px,1fr));gap:10px}
+.cc{background:white;border-radius:10px;border:1px solid #E0E0E0;overflow:hidden}
+.cc.iss{border:2px solid #CC0000}
+.ch{padding:12px 14px;color:white}
+.cn{font-size:14px;font-weight:700}
+.cs{font-size:9px;opacity:.8;letter-spacing:1px;text-transform:uppercase;margin-top:2px}
+.ptabs{display:flex;gap:3px;padding:7px 9px;background:#F4F4F4;overflow-x:auto}
+.pt{padding:3px 9px;border-radius:9px;font-size:10px;font-weight:600;cursor:pointer;border:1px solid #E0E0E0;background:white;color:#888;white-space:nowrap;font-family:inherit}
+.pt.all{background:#111;color:white;border-color:#111}
+.pt.Sports{background:#2563EB;color:white;border-color:#2563EB}
+.pt.Music{background:#DB2777;color:white;border-color:#DB2777}
+.pt.Gymnastics{background:#16A34A;color:white;border-color:#16A34A}
+.pt.Yoga{background:#CA8A04;color:white;border-color:#CA8A04}
+.pt.Sensory{background:#EA580C;color:white;border-color:#EA580C}
+.eqb{padding:9px 12px}
+.eqs{margin-bottom:8px}
+.eqt{font-size:9px;font-weight:700;letter-spacing:1.5px;text-transform:uppercase;padding-bottom:3px;border-bottom:2px solid;margin-bottom:5px}
+.eqt.Sports{color:#2563EB;border-color:#BFDBFE}
+.eqt.Music{color:#DB2777;border-color:#FCE7F3}
+.eqt.Gymnastics{color:#16A34A;border-color:#DCFCE7}
+.eqt.Yoga{color:#CA8A04;border-color:#FEF9C3}
+.eqt.Sensory{color:#EA580C;border-color:#FED7AA}
+.eqg{display:grid;grid-template-columns:1fr 1fr;gap:2px}
+.eqr{display:flex;justify-content:space-between;align-items:center;padding:4px 5px;border-radius:4px;font-size:11px}
+.eqr.low{background:#FDECEA}
+.eqn.Sports{color:#2563EB}.eqn.Music{color:#DB2777}.eqn.Gymnastics{color:#16A34A}.eqn.Yoga{color:#CA8A04}.eqn.Sensory{color:#EA580C}
+.eqq.ok{color:#111;font-weight:600}.eqq.low{color:#CC0000;font-weight:700}
+.cnote{margin:0 12px 8px;padding:6px 8px;background:#F4F4F4;border-radius:5px;font-size:11px;color:#888}
+.cbtns{padding:0 12px 12px;display:flex;gap:5px}
+.cbtn{flex:1;padding:6px;border-radius:6px;font-size:11px;font-weight:600;cursor:pointer;border:1px solid #E0E0E0;background:white;color:#888;font-family:inherit}
+.cbtn.xf{background:#EFF6FF;color:#2563EB;border-color:#BFDBFE}
+.cbtn.ed{background:#F0FDF4;color:#16A34A;border-color:#DCFCE7}
+.step{padding:13px;background:#F9F9F9;border-radius:8px;margin-bottom:9px;border:1px solid #E0E0E0}
+.snum{width:22px;height:22px;border-radius:50%;background:#CC0000;color:white;font-size:11px;font-weight:700;display:inline-flex;align-items:center;justify-content:center;margin-right:7px}
+.stitle{font-size:13px;font-weight:700}
+.ilist{margin-top:9px;display:flex;flex-direction:column;gap:3px;max-height:200px;overflow-y:auto}
+.ir{display:flex;align-items:center;justify-content:space-between;padding:6px 10px;background:white;border-radius:6px;border:1px solid #E0E0E0;font-size:12px}
+.xsum{background:#EFF6FF;border:1px solid #BFDBFE;border-radius:8px;padding:11px;margin-top:9px;font-size:12px}
+.tbl{width:100%;border-collapse:collapse;font-size:12px}
+.tbl thead{background:#111}
+.tbl th{color:white;padding:8px 11px;text-align:left;font-size:9px;letter-spacing:1.5px;text-transform:uppercase;font-weight:700}
+.tbl td{padding:8px 11px;border-bottom:1px solid #E0E0E0;vertical-align:middle}
+.tbl tr:last-child td{border:none}
+.tbl tr:hover td{background:#F9F9F9}
+.pill{display:inline-flex;align-items:center;padding:2px 8px;border-radius:10px;font-size:10px;font-weight:700}
+.pg{background:#EAF7EE;color:#16A34A}.pa{background:#FFF8E1;color:#CA8A04}.pr{background:#FDECEA;color:#CC0000}.pb{background:#EBF2FA;color:#6699CC}
+input[type=number]{background:#F4F4F4;border:1px solid #E0E0E0;border-radius:5px;padding:4px 7px;font-size:12px;width:60px;text-align:center;color:#111;font-family:inherit}
+input[type=text],input[type=date],select,textarea{background:white;border:1px solid #E0E0E0;border-radius:6px;padding:7px 10px;font-size:12px;color:#111;font-family:inherit;outline:none;width:100%}
+input[type=text]:focus,input[type=date]:focus,select:focus{border-color:#CC0000}
+label{font-size:10px;font-weight:700;color:#888;display:block;margin-bottom:3px;text-transform:uppercase;letter-spacing:1px}
+.fg{margin-bottom:10px}
+.fgrow{display:grid;grid-template-columns:repeat(auto-fit,minmax(140px,1fr));gap:8px;margin-bottom:10px}
+.mo{position:fixed;inset:0;background:rgba(0,0,0,.5);z-index:200;display:none;align-items:flex-start;justify-content:center;padding-top:50px;overflow-y:auto}
+.mo.open{display:flex}
+.mbox{background:white;border-radius:13px;padding:22px;width:min(520px,93vw);max-height:84vh;overflow-y:auto}
+.mbox h3{font-size:17px;font-weight:700;margin-bottom:3px}
+.mbox p{font-size:12px;color:#888;margin-bottom:15px}
+.mbtns{display:flex;gap:8px;margin-top:15px}
+.mbtns button{flex:1;padding:9px;border-radius:7px;border:none;font-size:13px;font-weight:700;cursor:pointer;font-family:inherit}
+.mok{background:#CC0000;color:white}.mcancel{background:#F4F4F4;color:#888}
+.eir{display:flex;align-items:center;gap:8px;padding:6px 0;border-bottom:1px solid #E0E0E0;font-size:12px}
+.eir:last-child{border:none}
+.ein{flex:1;font-weight:500}
+.edel{background:none;border:none;cursor:pointer;color:#CC0000;font-size:16px;padding:2px 5px}
+.hrow{display:flex;align-items:flex-start;gap:9px;padding:9px 0;border-bottom:1px solid #E0E0E0;font-size:12px}
+.hrow:last-child{border:none}
+.hic{width:28px;height:28px;border-radius:50%;background:#EBF2FA;color:#6699CC;display:flex;align-items:center;justify-content:center;font-size:12px;font-weight:700;flex-shrink:0}
+.srow{display:flex;justify-content:space-between;align-items:center;padding:7px 0;border-bottom:1px solid #E0E0E0;font-size:13px}
+.srow:last-child{border:none}
+.big{padding:9px 20px;border-radius:8px;border:none;font-size:13px;font-weight:700;cursor:pointer;font-family:inherit}
+.bigr{background:#CC0000;color:white}.bigg{background:#27AE60;color:white}.biggr{background:#F4F4F4;color:#888;border:1px solid #E0E0E0}
+.lbar{height:8px;background:#F4F4F4;border-radius:4px;overflow:hidden;margin-top:4px}
+.lfill{height:100%;border-radius:4px}
+@media(max-width:768px){.g2,.g4,.g5{grid-template-columns:1fr}.cgrid{grid-template-columns:1fr}}
+</style>
+</head>
+<body>
+<div class="stripe"></div>
+<header>
+  <div class="brand">
+    <div class="logo">M</div>
+    <div><div class="bn">MINI MONSTARS</div><div class="bs">Equipment Tracker</div></div>
+    <div class="live"><div class="dot"></div>LIVE</div>
+  </div>
+</header>
+<nav>
+  <button class="nt on" onclick="goTab('overview',this)">Overview</button>
+  <button class="nt" onclick="goTab('coaches',this)">Coaches &amp; Bags</button>
+  <button class="nt" onclick="goTab('transfer',this)">Transfer Equipment</button>
+  <button class="nt" onclick="goTab('history',this)">Transfer History</button>
+  <button class="nt" onclick="goTab('leadtimes',this)">Lead Times</button>
+  <button class="nt" onclick="goTab('stock',this)">Stock Levels</button>
+</nav>
+<main>
+
+<div class="view on" id="view-overview">
+  <div class="g5 mb">
+    <div class="kpi" style="border-top-color:#CC0000"><div class="kl">Coaches</div><div class="kv" style="color:#CC0000">35</div><div class="ks">All states</div></div>
+    <div class="kpi" style="border-top-color:#6699CC"><div class="kl">States</div><div class="kv" style="color:#6699CC">5</div><div class="ks">VIC WA SA NSW QLD</div></div>
+    <div class="kpi" style="border-top-color:#F5C400"><div class="kl">Transfers</div><div class="kv" style="color:#CA8A04" id="kv-x">0</div><div class="ks">This session</div></div>
+    <div class="kpi" style="border-top-color:#CC0000"><div class="kl">Coach Issues</div><div class="kv" style="color:#CC0000" id="kv-i">0</div><div class="ks">Low equipment</div></div>
+    <div class="kpi" style="border-top-color:#27AE60"><div class="kl">Orders Logged</div><div class="kv" style="color:#27AE60" id="kv-o">1</div><div class="ks">Lead time tracking</div></div>
+  </div>
+  <div class="g2">
+    <div class="card"><div class="ct">Alerts</div><div id="ov-al"></div></div>
+    <div class="card"><div class="ct">Coaches by State</div><div id="ov-st"></div></div>
+  </div>
+</div>
+
+<div class="view" id="view-coaches">
+  <div class="filt" id="sfilt">
+    <button class="sf on" onclick="fst('all',this)">All States</button>
+    <button class="sf" onclick="fst('VIC',this)">VIC</button>
+    <button class="sf" onclick="fst('WA',this)">WA</button>
+    <button class="sf" onclick="fst('SA',this)">SA</button>
+    <button class="sf" onclick="fst('NSW',this)">NSW</button>
+    <button class="sf" onclick="fst('QLD',this)">QLD</button>
+  </div>
+  <div class="cgrid" id="cgrid"></div>
+</div>
+
+<div class="view" id="view-transfer">
+  <div class="card">
+    <div class="ct">Transfer Equipment Between Coaches</div>
+    <p style="font-size:12px;color:#888;margin-bottom:14px">Pick who you are transferring FROM, tick the items, then pick who to transfer TO.</p>
+    <div class="step">
+      <div style="display:flex;align-items:center;margin-bottom:9px"><div class="snum">1</div><div class="stitle">Coach transferring FROM</div></div>
+      <select id="xf-from" onchange="loadFrom()"><option value="">Choose coach...</option></select>
+    </div>
+    <div class="step" id="step2" style="opacity:.4;pointer-events:none">
+      <div style="display:flex;align-items:center;margin-bottom:9px"><div class="snum">2</div><div class="stitle">Choose items and quantities</div></div>
+      <div id="from-items"><div style="font-size:12px;color:#888;padding:7px 0">Select a coach above first.</div></div>
+    </div>
+    <div class="step" id="step3" style="opacity:.4;pointer-events:none">
+      <div style="display:flex;align-items:center;margin-bottom:9px"><div class="snum">3</div><div class="stitle">Coach transferring TO</div></div>
+      <select id="xf-to" onchange="upSum()"><option value="">Choose coach...</option></select>
+    </div>
+    <div id="xprev" style="display:none">
+      <div class="xsum" id="xsumbox"></div>
+      <div style="display:flex;gap:8px;margin-top:10px">
+        <button class="big bigr" onclick="doTransfer()" style="flex:1">Confirm Transfer</button>
+        <button class="big biggr" onclick="resetXfer()">Reset</button>
+      </div>
+    </div>
+  </div>
+</div>
+
+<div class="view" id="view-history">
+  <div class="card"><div class="ct">Transfer History</div><div id="hlist"><div style="text-align:center;padding:28px;color:#888">No transfers yet.</div></div></div>
+</div>
+
+<div class="view" id="view-leadtimes">
+  <div class="g4 mb">
+    <div class="kpi" style="border-top-color:#CC0000"><div class="kl">Orders Logged</div><div class="kv" style="color:#CC0000" id="lt-n">1</div><div class="ks">Building data over time</div></div>
+    <div class="kpi" style="border-top-color:#27AE60"><div class="kl">Fastest Item</div><div class="kv" style="color:#27AE60;font-size:15px" id="lt-fast">--</div><div class="ks" id="lt-fast-s">--</div></div>
+    <div class="kpi" style="border-top-color:#CC0000"><div class="kl">Slowest Item</div><div class="kv" style="color:#CC0000;font-size:15px" id="lt-slow">Cricket Bats</div><div class="ks" id="lt-slow-s">45 days - plan ahead</div></div>
+    <div class="kpi" style="border-top-color:#6699CC"><div class="kl">Suppliers</div><div class="kv" style="color:#6699CC" id="lt-sup">1</div><div class="ks">Leko Sports</div></div>
+  </div>
+  <div class="card mb">
+    <div class="ct">Log a New Order</div>
+    <div class="fgrow">
+      <div class="fg" style="margin:0"><label>Item Ordered</label><input type="text" id="lo-item" placeholder="e.g. Soccer Balls"></div>
+      <div class="fg" style="margin:0"><label>Supplier</label><input type="text" id="lo-sup" placeholder="e.g. Leko Sports"></div>
+      <div class="fg" style="margin:0"><label>Date Ordered</label><input type="date" id="lo-ord"></div>
+      <div class="fg" style="margin:0"><label>Date Received</label><input type="date" id="lo-rec"></div>
+      <div class="fg" style="margin:0"><label>Qty</label><input type="number" id="lo-qty" placeholder="0" style="width:100%"></div>
+      <div class="fg" style="margin:0"><label>Cost ($)</label><input type="number" id="lo-cost" placeholder="0.00" step="0.01" style="width:100%"></div>
+    </div>
+    <div class="fg"><label>Notes</label><input type="text" id="lo-notes" placeholder="Any notes about this order..."></div>
+    <button class="big bigr" onclick="logOrder()">+ Log Order</button>
+  </div>
+  <div class="g2 mb">
+    <div class="card"><div class="ct">Lead Time by Item</div><div id="lt-items"></div></div>
+    <div class="card"><div class="ct">Lead Time by Supplier</div><div id="lt-sups"></div></div>
+  </div>
+  <div class="card">
+    <div class="ct">Full Order Log</div>
+    <div style="overflow-x:auto">
+      <table class="tbl"><thead><tr><th>#</th><th>Item</th><th>Supplier</th><th>Qty</th><th>Cost</th><th>Ordered</th><th>Received</th><th>Lead Time</th><th>Status</th><th>Notes</th><th></th></tr></thead>
+      <tbody id="lt-log"></tbody></table>
+    </div>
+  </div>
+</div>
+
+<div class="view" id="view-stock">
+  <div style="margin-bottom:10px">
+    <select onchange="renderStock(this.value)" style="width:auto;min-width:180px">
+      <option value="all">All Categories</option>
+      <option value="Sports">Sports</option>
+      <option value="Music">Music</option>
+      <option value="Gymnastics">Gymnastics</option>
+      <option value="Yoga">Yoga</option>
+      <option value="Other">Other</option>
+    </select>
+  </div>
+  <div style="overflow-x:auto;border-radius:10px;border:1px solid #E0E0E0;background:white">
+    <table class="tbl"><thead><tr><th>Item</th><th>Category</th><th>In Stock</th><th>Min</th><th>Reorder</th><th>Status</th></tr></thead>
+    <tbody id="sbody"></tbody></table>
+  </div>
+</div>
+</main>
+
+<div class="mo" id="editModal">
+  <div class="mbox">
+    <h3 id="em-t">Edit Equipment</h3>
+    <p id="em-s">Update quantities.</p>
+    <div id="em-sec"></div>
+    <div style="background:#F9F9F9;border-radius:8px;padding:12px;margin-top:12px;border:1px solid #E0E0E0">
+      <div style="font-size:10px;font-weight:700;color:#888;text-transform:uppercase;letter-spacing:1px;margin-bottom:8px">Add New Item</div>
+      <div style="display:flex;gap:6px;flex-wrap:wrap">
+        <input type="text" id="ni-n" placeholder="Item name" style="flex:2;min-width:110px">
+        <select id="ni-p" style="flex:1;min-width:90px"><option>Sports</option><option>Music</option><option>Gymnastics</option><option>Yoga</option><option>Sensory</option></select>
+        <input type="number" id="ni-q" placeholder="Qty" style="width:65px">
+        <button onclick="addNewItem()" class="big bigr" style="padding:7px 12px;font-size:12px">Add</button>
+      </div>
+    </div>
+    <div class="fg" style="margin-top:10px"><label>Notes</label><input type="text" id="em-notes" placeholder="e.g. 2 broken tambourines"></div>
+    <div class="mbtns">
+      <button class="mcancel" onclick="closeM()">Cancel</button>
+      <button class="mok" onclick="saveEdit()">Save Changes</button>
+    </div>
+  </div>
+</div>
+
+<script>
+var SC = {"VIC":"#CC0000","WA":"#6699CC","SA":"#b8930a","NSW":"#5588bb","QLD":"#c47a0a"};
+var PC = {"Sports":"#2563EB","Music":"#DB2777","Gymnastics":"#16A34A","Yoga":"#CA8A04","Sensory":"#EA580C"};
+var MINS = {"Soccer Balls":15,"AFL Footballs":15,"Basketballs":15,"Cricket Bats":8,"Rugby/NFL Balls":15,"Tennis Rackets":15,"Hockey Sticks":15,"Hoops":8,"Cones":20,"Tennis Balls":10,"Bean Bags Red":4,"Shakers":15,"Tambourines":15,"Xylophones":15,"Rhythm Sticks":20,"Yoga Mats":15,"Panel Mats":1,"MP3":1};
+var COACHES = [{"id":"c01","name":"Alanna Heitman","state":"VIC","condition":"Good","eq":{"Sports":["Soccer Balls:22","Tennis Rackets:21","Hockey Sticks:22","Wheelie Bag:1","Hoops:12","Hurdles:4","Ladders:2","Pods:4","Tennis Balls:20","Bean Bags Red:6","Bean Bags Yellow:6","Bean Bags Blue:6","Bean Bags Green:6","MP3:1","Mikey Monstar:1"],"Gymnastics":["Panel Mats:2","Foam Balance Beam:1","Plastic Balance Beam:2","Hula Hoops:12"]},"notes":""},{"id":"c02","name":"Alessandra Gallucci","state":"VIC","condition":"Fair","eq":{"Sports":["AFL Footballs:22","Basketballs:24","Cricket Bats:12","Rugby/NFL Balls:21","Wheelie Bag:1","Net Bags:4","Hoops:8","Hurdles:4","Ladders:3","Cones:24","Tennis Balls:17","Bean Bags Red:8","Bean Bags Yellow:7","Bean Bags Blue:6","Bean Bags Green:3","MP3:1"],"Music":["Shakers:12","Tambourines:27","Xylophones:25","Rhythm Sticks:24","Triangles:25","Ukulele:25","MP3:1"],"Yoga":["Mats:23","MP3:1"]},"notes":"Wheelie bag damaged. 4 tambourines damaged."},{"id":"c03","name":"David Jones","state":"VIC","condition":"Good","eq":{"Sports":["Tennis Rackets:21","Hockey Sticks:20","Hoops:12","Ladders:3","Cones:25","Tennis Balls:30","Bean Bags Red:5","Bean Bags Yellow:6","Bean Bags Blue:6","Bean Bags Green:6","AFL Footballs:22","Soccer Balls:22"]},"notes":""},{"id":"c04","name":"Eina Tubadeza","state":"VIC","condition":"Good","eq":{"Sports":["Hoops:12","Hurdles:4","Ladders:3","Pods:4","Cones:25","Bean Bags Red:6","Bean Bags Yellow:6","Bean Bags Blue:5","Bean Bags Green:5","MP3:1"]},"notes":""},{"id":"c05","name":"Gabriel de Franca","state":"VIC","condition":"Good","eq":{"Sports":["AFL Footballs:23","Basketballs:21","Cricket Bats:11","Rugby/NFL Balls:20","Hockey Sticks:1","Wheelie Bag:1","Net Bags:2","Hoops:4","Hurdles:4","Ladders:1","Pods:7","Cones:35","Tennis Balls:9","Bean Bags Red:10","Bean Bags Yellow:2","MP3:1"]},"notes":"Needs more bean bag colour variety"},{"id":"c06","name":"Jessica Smith","state":"VIC","condition":"Good","eq":{"Music":["Tambourines:25","Xylophones:26","Rhythm Sticks:46","Triangles:24","Castanets:19","Wrist Bells:17","Ribbons:48","MP3:1"],"Gymnastics":["Wedge:1"],"Sports":["MP3:1"]},"notes":""},{"id":"c07","name":"Lorena Gigliotti","state":"VIC","condition":"Good","eq":{"Sports":["AFL Footballs:22","Basketballs:38","Cricket Bats:9","Rugby/NFL Balls:21","Soccer Balls:44","Hockey Sticks:23","Wheelie Bag:1","Hoops:11","Hurdles:4","Ladders:2","Pods:4","Cones:24","Tennis Balls:27","Bean Bags Red:5","Bean Bags Yellow:4","Bean Bags Blue:6","Bean Bags Green:4","MP3:1"],"Music":["Shakers:43","Tambourines:25","Xylophones:24","Rhythm Sticks:91","Triangles:49","Castanets:33","Wrist Bells:46","Ribbons:21","MP3:1"],"Gymnastics":["Panel Mats:1","Wedge:1"]},"notes":""},{"id":"c08","name":"Marcel Haj","state":"VIC","condition":"Good","eq":{"Sports":["AFL Footballs:1","Rugby/NFL Balls:18","Tennis Rackets:30","Wheelie Bag:1","Hoops:8","Hurdles:3","Ladders:4","Cones:24","Tennis Balls:20","Bean Bags Red:7","Bean Bags Yellow:4","Bean Bags Blue:2","Bean Bags Green:4","MP3:1"]},"notes":""},{"id":"c09","name":"Matthew Mills","state":"VIC","condition":"Good","eq":{"Sports":["Rugby/NFL Balls:12","Soccer Balls:12","Tennis Rackets:15","Hockey Sticks:16","Wheelie Bag:1","Hoops:10","Hurdles:3","Ladders:4","MP3:1"],"Music":["Shakers:12","Tambourines:12","Xylophones:12","Rhythm Sticks:18","Triangles:10","Wrist Bells:12","MP3:1"]},"notes":""},{"id":"c10","name":"Mark Lewis","state":"VIC","condition":"Good","eq":{"Sports":["AFL Footballs:23","Basketballs:20","Cricket Bats:5","Rugby/NFL Balls:25","Cones:12","MP3:1"],"Gymnastics":["Foam Balance Beam:2"],"Music":["MP3:1"]},"notes":""},{"id":"c11","name":"Taryn Gore","state":"VIC","condition":"Good","eq":{"Sports":["Rugby/NFL Balls:20","Soccer Balls:20","Tennis Rackets:22","Hockey Sticks:22","Wheelie Bag:1","Net Bags:2","Hoops:14","Hurdles:4","Ladders:1","Cones:22","Tennis Balls:12","Bean Bags Red:11","Bean Bags Yellow:2","Bean Bags Blue:1","Bean Bags Green:4","MP3:1"],"Gymnastics":["Panel Mats:2","Foam Balance Beam:2","Hula Hoops:12"],"Music":["Tambourines:23","Castanets:24","Wrist Bells:24","MP3:1"]},"notes":""},{"id":"c12","name":"Ashlee Hottes","state":"VIC","condition":"Fair","eq":{"Sports":["AFL Footballs:18","Basketballs:20","Cricket Bats:13","Rugby/NFL Balls:27","Wheelie Bag:1","Net Bags:4","Hoops:12","Hurdles:3","Ladders:2","Cones:28","Tennis Balls:20","Bean Bags Red:3","Bean Bags Yellow:2","Bean Bags Blue:7","Bean Bags Green:4","MP3:1"],"Music":["Shakers:23","Wrist Bells:24","Ribbons:23","MP3:1"],"Gymnastics":["Panel Mats:2","Wedge:2","Hula Hoops:12"]},"notes":"Ripped bean bags. 1 AFL wont pump."},{"id":"c13","name":"Lauren Berechree","state":"VIC","condition":"Good","eq":{"Sports":["Rugby/NFL Balls:13","Soccer Balls:20","Tennis Rackets:23","Hockey Sticks:23","Wheelie Bag:1","Net Bags:4","Hoops:11","Hurdles:4","Ladders:2","Cones:30","Tennis Balls:20","MP3:1"]},"notes":""},{"id":"c14","name":"Sunicha Nakhrua","state":"VIC","condition":"Good","eq":{"Sports":["Basketballs:22","Cricket Bats:12","Wheelie Bag:1","Net Bags:2","Hoops:16","Hurdles:4","Ladders:3","Pods:4","Cones:10","Tennis Balls:12","Bean Bags Red:11","Bean Bags Yellow:4","Bean Bags Blue:9"],"Music":["Tambourines:22","Xylophones:24","Ukulele:22","Wrist Bells:16","Ribbons:39","Hoops:11"]},"notes":"2 broken ukuleles."},{"id":"c15","name":"Jesse Dutlow","state":"VIC","condition":"Good","eq":{"Sports":["Rugby/NFL Balls:44","Tennis Rackets:21","Hockey Sticks:24","Batting Tees:4","Wheelie Bag:1","Net Bags:3","Hoops:12","Hurdles:3","Ladders:2","Pods:4","Cones:21","Tennis Balls:21","Bean Bags Red:8","Bean Bags Yellow:8","Bean Bags Blue:6","Bean Bags Green:7","MP3:1"],"Music":["Tambourines:25","Xylophones:9","Triangles:19","Wrist Bells:9","MP3:1"],"Gymnastics":["Panel Mats:1","Plastic Balance Beam:1","Ribbons:17","Balance Steps:8"]},"notes":"Xylophones need sticks. Has 1 large parachute."},{"id":"c16","name":"Leah","state":"WA","condition":"Good","eq":{"Sports":["AFL Footballs:20","AFL Posts:11","Basketballs:30","Cricket Bats:13","Batting Tees:4","Rugby/NFL Balls:20","Soccer Balls:19","Wheelie Bag:2","Net Bags:5","Hoops:7","Hurdles:5","Cones:35","Tennis Balls:10","MP3:1"],"Music":["Shakers:27","Tambourines:9","Xylophones:9","Wrist Bells:9","MP3:1"],"Yoga":["MP3:1"]},"notes":"WA coach. 2 wheelie bags. 5 broken tambourines. Xylophones need sticks."},{"id":"c17","name":"Abbey Dagg","state":"NSW","condition":"Good","eq":{"Sports":["Basketballs:23","Hoops:12","Hurdles:4","Ladders:3","Pods:3","Cones:25","Tennis Balls:23","Bean Bags Red:6","Bean Bags Yellow:6","Bean Bags Blue:6","Bean Bags Green:6","MP3:1"]},"notes":""},{"id":"c18","name":"Madeline Aujard","state":"NSW","condition":"Good","eq":{"Sports":["Rugby/NFL Balls:12","Soccer Balls:14","Hockey Sticks:25","Hoops:9","Hurdles:3","Ladders:2","Pods:4","Cones:25","Tennis Balls:23","Bean Bags Red:4","MP3:1"]},"notes":""},{"id":"c19","name":"Daniel Motta","state":"NSW","condition":"Good","eq":{"Sports":["AFL Footballs:22","Basketballs:18","Cricket Bats:11","Rugby/NFL Balls:24","Hoops:11","Hurdles:2","Ladders:4","Cones:28","Tennis Balls:11","Bean Bags Red:7","Bean Bags Yellow:5","Bean Bags Blue:6","Bean Bags Green:7","MP3:1"]},"notes":""},{"id":"c20","name":"Kasey Miller","state":"NSW","condition":"Good","eq":{"Sports":["MP3:1","Yoga Mats:23"]},"notes":"Equipment to be confirmed"},{"id":"c21","name":"Marc Mano","state":"NSW","condition":"Good","eq":{"Sports":["Tennis Rackets:23","Tennis Balls:23","Bean Bags Red:24"]},"notes":"Equipment to be confirmed"},{"id":"c22","name":"Olivia Malek-Jeffs","state":"NSW","condition":"Good","eq":{"Sports":["Basketballs:20","Rugby/NFL Balls:20","Hoops:14","Hurdles:4","Ladders:2","Pods:5","Cones:8","Tennis Balls:19","Bean Bags Red:9","Bean Bags Yellow:5","Bean Bags Blue:8","Bean Bags Green:4","MP3:1"]},"notes":""},{"id":"c23","name":"Ashlea","state":"QLD","condition":"Good","eq":{"Sports":["AFL Footballs:13","Basketballs:19","Cricket Bats:11","Wickets:2","Rugby/NFL Balls:39","Soccer Balls:20","Tennis Rackets:21","Hockey Sticks:15","Wheelie Bag:1","Hoops:10","Ladders:2","Cones:13","Tennis Balls:20","Bean Bags Red:4","Bean Bags Yellow:3","Bean Bags Blue:3","Bean Bags Green:4","MP3:1"]},"notes":""},{"id":"c24","name":"Luana","state":"QLD","condition":"Good","eq":{"Yoga":["Mats:23"]},"notes":"Yoga only"},{"id":"c25","name":"Monty","state":"QLD","condition":"Good","eq":{"Sports":["AFL Footballs:13","Basketballs:19","Cricket Bats:11","Wickets:2","Rugby/NFL Balls:39","Soccer Balls:20","Tennis Rackets:21","Hockey Sticks:15","Wheelie Bag:1","Hoops:10","Ladders:2","Cones:13","Tennis Balls:20","Bean Bags Red:4","Bean Bags Yellow:3","Bean Bags Blue:3","Bean Bags Green:4","MP3:1"]},"notes":""},{"id":"c26","name":"Isabella","state":"QLD","condition":"Good","eq":{"Sports":["AFL Footballs:17","Basketballs:20","Cricket Bats:5","Rugby/NFL Balls:38","Soccer Balls:23","Tennis Rackets:46","Hockey Sticks:46","Wheelie Bag:2","Net Bags:7","Hoops:11","Hurdles:9","Ladders:5","Cones:58","Tennis Balls:59","Bean Bags Red:3","Bean Bags Yellow:5","Bean Bags Blue:6","Bean Bags Green:7","MP3:1"],"Music":["Shakers:11","Xylophones:23","Ukulele:21","Castanets:22","Wrist Bells:15","Ribbons:23","MP3:1"],"Gymnastics":["Panel Mats:1","Foam Balance Beam:1","Wedge:1","Ribbons:23"],"Yoga":["Mats:0","MP3:1"]},"notes":"Has own speaker. 7 balance buckets."},{"id":"c27","name":"Safira","state":"QLD","condition":"Good","eq":{"Sports":["AFL Footballs:23","Soccer Goals:2","Tennis Rackets:23","Hockey Sticks:23","Wheelie Bag:1","Net Bags:4","Hoops:12","Hurdles:4","Ladders:3","Cones:30","Tennis Balls:12","Bean Bags Red:12","Bean Bags Yellow:12","Bean Bags Blue:12","Bean Bags Green:12","MP3:2"],"Music":["Shakers:18","Tambourines:24","Xylophones:22","Triangles:24","Castanets:24","Wrist Bells:24","Ribbons:24","MP3:2"],"Gymnastics":["Panel Mats:2","Foam Balance Beam:2","Plastic Balance Beam:1","Hula Hoops:12","Ribbons:23"]},"notes":"Well equipped."},{"id":"c28","name":"Allira","state":"QLD","condition":"Good","eq":{"Sports":["Rugby/NFL Balls:20","Soccer Balls:30","Tennis Rackets:20","Hockey Sticks:20","Wheelie Bag:1","Net Bags:4","Hoops:12","Hurdles:4","Ladders:4","Pods:4","Cones:40","Tennis Balls:16","Bean Bags Red:6","Bean Bags Yellow:6","Bean Bags Blue:6","Bean Bags Green:7","MP3:1"]},"notes":""},{"id":"c29","name":"Nelu","state":"QLD","condition":"Good","eq":{"Sports":["Rugby/NFL Balls:23","Soccer Balls:22","Tennis Rackets:23","Hockey Sticks:25","Hoops:12","Hurdles:4","Ladders:3","Pods:4","Cones:23","Tennis Balls:23","Bean Bags Red:6","Bean Bags Yellow:6","Bean Bags Blue:6","Bean Bags Green:6"]},"notes":""},{"id":"c30","name":"Sharna Bowers","state":"QLD","condition":"Good","eq":{"Sports":["Hoops:10","Hurdles:5","Ladders:4","Cones:22","Bean Bags Red:6","Bean Bags Yellow:6","Bean Bags Blue:6","Bean Bags Green:6"],"Music":["Shakers:22","Tambourines:21","Xylophones:24","Rhythm Sticks:30","Triangles:24","Castanets:24","Wrist Bells:24","Hoops:12"],"Gymnastics":["Plastic Balance Beam:2","Wedge:1","Hula Hoops:10"]},"notes":""},{"id":"c31","name":"Nicoletta Mercouris","state":"QLD","condition":"Good","eq":{"Sports":["AFL Footballs:21","Basketballs:22","Tennis Rackets:24","Hockey Sticks:23","Hoops:12","Ladders:4","Pods:4","Tennis Balls:24","Bean Bags Red:19"],"Yoga":["Mats:23"],"Gymnastics":["Plastic Balance Beam:2","Wedge:1"]},"notes":""},{"id":"c32","name":"Farrah Yasmin Lai","state":"QLD","condition":"Good","eq":{"Sports":["Tennis Rackets:23","Tennis Balls:23","Bean Bags Red:24"],"Gymnastics":["Panel Mats:1","Wedge:1"]},"notes":""},{"id":"c33","name":"Abi Amore","state":"QLD","condition":"Good","eq":{"Sports":["Bean Bags Red:24"]},"notes":"Equipment to be confirmed"},{"id":"c34","name":"Marcus Thian","state":"QLD","condition":"Good","eq":{"Sports":["Yoga Mats:25"]},"notes":"Equipment to be confirmed"},{"id":"c35","name":"Lara Sarre","state":"SA","condition":"Good","eq":{"Sports":["AFL Footballs:23","Soccer Goals:2","Tennis Rackets:23","Hockey Sticks:23","Wheelie Bag:1","Net Bags:4","Hoops:12","Hurdles:4","Ladders:3","Cones:30","Tennis Balls:12","Bean Bags Red:12","Bean Bags Yellow:12","Bean Bags Blue:12","Bean Bags Green:12","MP3:2"],"Music":["Shakers:18","Tambourines:24","Xylophones:22","Triangles:24","Castanets:24","Wrist Bells:24","Ribbons:24","MP3:2"],"Gymnastics":["Panel Mats:2","Foam Balance Beam:2","Plastic Balance Beam:1","Hula Hoops:12","Ribbons:23"],"Yoga":["Mats:23","MP3:2"]},"notes":"SA state coach."}];
+var ITEMS = [{"id": "i01", "name": "AFL Footballs", "cat": "Sports", "stock": 0, "min": 5, "reorder": 10}, {"id": "i02", "name": "Basketballs", "cat": "Sports", "stock": 0, "min": 5, "reorder": 10}, {"id": "i03", "name": "Cricket Bats", "cat": "Sports", "stock": 0, "min": 4, "reorder": 8}, {"id": "i04", "name": "Rugby/NFL Balls", "cat": "Sports", "stock": 0, "min": 4, "reorder": 8}, {"id": "i05", "name": "Soccer Balls", "cat": "Sports", "stock": 0, "min": 8, "reorder": 12}, {"id": "i06", "name": "Tennis Rackets", "cat": "Sports", "stock": 0, "min": 4, "reorder": 8}, {"id": "i07", "name": "Hockey Sticks", "cat": "Sports", "stock": 0, "min": 4, "reorder": 8}, {"id": "i08", "name": "Tambourines", "cat": "Music", "stock": 0, "min": 6, "reorder": 10}, {"id": "i09", "name": "Xylophones", "cat": "Music", "stock": 0, "min": 4, "reorder": 6}, {"id": "i10", "name": "Rhythm Sticks", "cat": "Music", "stock": 0, "min": 10, "reorder": 20}, {"id": "i11", "name": "Shakers", "cat": "Music", "stock": 0, "min": 8, "reorder": 15}, {"id": "i12", "name": "Triangles", "cat": "Music", "stock": 0, "min": 6, "reorder": 10}, {"id": "i13", "name": "Castanets", "cat": "Music", "stock": 0, "min": 6, "reorder": 10}, {"id": "i14", "name": "Wrist Bells", "cat": "Music", "stock": 0, "min": 8, "reorder": 15}, {"id": "i15", "name": "Ukulele", "cat": "Music", "stock": 0, "min": 2, "reorder": 4}, {"id": "i16", "name": "Panel Mats", "cat": "Gymnastics", "stock": 0, "min": 2, "reorder": 4}, {"id": "i17", "name": "Foam Balance Beam", "cat": "Gymnastics", "stock": 0, "min": 2, "reorder": 4}, {"id": "i18", "name": "Wedge", "cat": "Gymnastics", "stock": 0, "min": 2, "reorder": 4}, {"id": "i19", "name": "Yoga Mats", "cat": "Yoga", "stock": 0, "min": 6, "reorder": 10}, {"id": "i20", "name": "Tennis Balls", "cat": "Other", "stock": 0, "min": 20, "reorder": 40}, {"id": "i21", "name": "Bean Bags", "cat": "Other", "stock": 0, "min": 10, "reorder": 20}, {"id": "i22", "name": "Hoops", "cat": "Other", "stock": 0, "min": 8, "reorder": 15}, {"id": "i23", "name": "Cones", "cat": "Other", "stock": 0, "min": 20, "reorder": 40}, {"id": "i24", "name": "Hurdles", "cat": "Other", "stock": 0, "min": 6, "reorder": 10}, {"id": "i25", "name": "Wheelie Bag", "cat": "Other", "stock": 0, "min": 2, "reorder": 4}, {"id": "i26", "name": "Net Bags", "cat": "Other", "stock": 0, "min": 5, "reorder": 10}, {"id": "i27", "name": "MP3 Player", "cat": "Other", "stock": 0, "min": 3, "reorder": 5}, {"id": "i28", "name": "Mikey Monstar", "cat": "Other", "stock": 0, "min": 2, "reorder": 4}];
+var ORDERS = [{"id": "o01", "item": "Cricket Bats", "supplier": "Leko Sports", "qty": 0, "cost": 0, "ordered": "2026-02-02", "received": "2026-03-19", "notes": "First order - 45 day lead time"}];
+var activeState = "all";
+var coachFilters = {};
+var xferHistory = [];
+var editingId = null;
+
+function pQ(s) {
+  var m = (s || "").match(/^(\d+)/);
+  return m ? parseInt(m[1]) : 0;
+}
+function pN(s) {
+  return (s || "").replace(/^\d+/, "").trim();
+}
+function dBet(a, b) {
+  return Math.round((new Date(b + "T00:00:00") - new Date(a + "T00:00:00")) / 86400000);
+}
+function fDate(d) {
+  if (!d) return "n/a";
+  return new Date(d + "T00:00:00").toLocaleDateString("en-AU", {day:"numeric",month:"short",year:"2-digit"});
+}
+function todayISO() {
+  return new Date().toISOString().split("T")[0];
+}
+function hasIssue(c) {
+  var progs = Object.keys(c.eq);
+  for (var pi = 0; pi < progs.length; pi++) {
+    var items = c.eq[progs[pi]] || [];
+    for (var ii = 0; ii < items.length; ii++) {
+      var raw = items[ii];
+      var ci = raw.lastIndexOf(":");
+      var name = ci > -1 ? raw.substring(0, ci).trim() : raw;
+      var qty = pQ(ci > -1 ? raw.substring(ci + 1) : "");
+      if (MINS[name] && qty < MINS[name]) return true;
+    }
+  }
+  return false;
+}
+function goTab(id, btn) {
+  var views = document.querySelectorAll(".view");
+  for (var i = 0; i < views.length; i++) views[i].classList.remove("on");
+  var btns = document.querySelectorAll(".nt");
+  for (var i = 0; i < btns.length; i++) btns[i].classList.remove("on");
+  document.getElementById("view-" + id).classList.add("on");
+  if (btn) btn.classList.add("on");
+}
+function fst(s, btn) {
+  activeState = s;
+  var sfs = document.querySelectorAll("#sfilt .sf");
+  for (var i = 0; i < sfs.length; i++) sfs[i].classList.remove("on");
+  btn.classList.add("on");
+  renderCoaches();
+}
+function openM() { document.getElementById("editModal").classList.add("open"); }
+function closeM() { document.getElementById("editModal").classList.remove("open"); }
+
+function renderOverview() {
+  var issues = [];
+  for (var i = 0; i < COACHES.length; i++) { if (hasIssue(COACHES[i])) issues.push(COACHES[i]); }
+  document.getElementById("kv-x").textContent = xferHistory.length;
+  document.getElementById("kv-i").textContent = issues.length;
+  document.getElementById("kv-o").textContent = ORDERS.length;
+  var al = "";
+  if (issues.length) {
+    for (var i = 0; i < issues.length; i++) {
+      al += '<div class="al r"><div><div class="alt">Low equipment &mdash; ' + issues[i].name + ' (' + issues[i].state + ')</div>Items below minimum.</div></div>';
+    }
+  } else {
+    al = '<div class="al g"><div>All coaches have sufficient equipment.</div></div>';
+  }
+  if (xferHistory.length) {
+    var l = xferHistory[0];
+    al += '<div class="al b"><div><div class="alt">Last transfer</div>' + l.qty + 'x ' + l.item + ': ' + l.from + ' to ' + l.to + '</div></div>';
+  }
+  document.getElementById("ov-al").innerHTML = al;
+  var states = ["VIC","WA","SA","NSW","QLD"];
+  var ss = "";
+  for (var i = 0; i < states.length; i++) {
+    var s = states[i];
+    var cnt = 0;
+    for (var j = 0; j < COACHES.length; j++) { if (COACHES[j].state === s) cnt++; }
+    ss += '<div class="srow"><span style="font-weight:700">' + s + '</span><span style="background:' + SC[s] + ';color:white;padding:2px 10px;border-radius:10px;font-size:11px;font-weight:700">' + cnt + ' coaches</span></div>';
+  }
+  document.getElementById("ov-st").innerHTML = ss;
+}
+
+function buildEq(c, filt) {
+  var progs = Object.keys(c.eq);
+  var show = filt === "all" ? progs : [filt];
+  var html = '<div class="eqb">';
+  for (var pi = 0; pi < show.length; pi++) {
+    var prog = show[pi];
+    var its = c.eq[prog] || [];
+    if (!its.length) continue;
+    html += '<div class="eqs"><div class="eqt ' + prog + '">' + prog + '</div><div class="eqg">';
+    for (var ii = 0; ii < its.length; ii++) {
+      var raw = its[ii];
+      var ci = raw.lastIndexOf(":");
+      var name = ci > -1 ? raw.substring(0, ci).trim() : raw;
+      var qstr = ci > -1 ? raw.substring(ci + 1).trim() : "";
+      var qty = pQ(qstr);
+      var note = pN(qstr);
+      var low = !!(MINS[name] && qty < MINS[name]);
+      var dispQ = qstr || "n/a";
+      html += '<div class="eqr' + (low ? " low" : "") + '">';
+      html += '<span class="eqn ' + prog + '">' + name;
+      if (note) html += ' <em style="font-size:10px;color:#CA8A04">' + note + '</em>';
+      html += '</span>';
+      html += '<span class="eqq ' + (low ? "low" : "ok") + '">' + dispQ + (low ? " (!)" : "") + '</span>';
+      html += '</div>';
+    }
+    html += '</div></div>';
+  }
+  if (!progs.length) html += '<div style="font-size:12px;color:#888;padding:7px 0">No equipment listed.</div>';
+  html += '</div>';
+  return html;
+}
+
+function buildCard(c) {
+  var filt = coachFilters[c.id] || "all";
+  var progs = Object.keys(c.eq);
+  var issue = hasIssue(c);
+  var tabs = '<div class="ptabs">';
+  tabs += '<button class="pt all" onclick="setF(\'' + c.id + '\',\'all\',this)">All</button>';
+  for (var i = 0; i < progs.length; i++) {
+    var p = progs[i];
+    var active = filt === p ? p : "";
+    tabs += '<button class="pt ' + active + '" onclick="setF(\'' + c.id + '\',\'' + p + '\',this)">' + p + '</button>';
+  }
+  tabs += '</div>';
+  var eq = buildEq(c, filt);
+  var note = c.notes ? '<div class="cnote">' + c.notes + '</div>' : '';
+  var html = '<div class="cc' + (issue ? " iss" : "") + '" id="card-' + c.id + '">';
+  html += '<div class="ch" style="background:' + (SC[c.state] || "#888") + '">';
+  html += '<div class="cn">' + c.name + (issue ? " (!)" : "") + '</div>';
+  html += '<div class="cs">' + c.state + ' &middot; ' + c.condition + '</div></div>';
+  html += tabs + eq + note;
+  html += '<div class="cbtns">';
+  html += '<button class="cbtn xf" onclick="quickXfer(\'' + c.id + '\')">Transfer</button>';
+  html += '<button class="cbtn ed" onclick="openEdit(\'' + c.id + '\')">Edit</button>';
+  html += '</div></div>';
+  return html;
+}
+
+function renderCoaches() {
+  var list = activeState === "all" ? COACHES : [];
+  if (activeState !== "all") {
+    for (var i = 0; i < COACHES.length; i++) {
+      if (COACHES[i].state === activeState) list.push(COACHES[i]);
+    }
+  }
+  var html = "";
+  for (var i = 0; i < list.length; i++) html += buildCard(list[i]);
+  document.getElementById("cgrid").innerHTML = html;
+}
+
+function setF(id, prog, btn) {
+  coachFilters[id] = prog;
+  var card = document.getElementById("card-" + id);
+  if (!card) return;
+  var pts = card.querySelectorAll(".pt");
+  for (var i = 0; i < pts.length; i++) pts[i].className = "pt";
+  btn.classList.add(prog === "all" ? "all" : prog);
+  var c = null;
+  for (var i = 0; i < COACHES.length; i++) { if (COACHES[i].id === id) { c = COACHES[i]; break; } }
+  if (!c) return;
+  var old = card.querySelector(".eqb");
+  if (old) {
+    var tmp = document.createElement("div");
+    tmp.innerHTML = buildEq(c, prog);
+    old.parentNode.replaceChild(tmp.firstChild, old);
+  }
+}
+
+function populateSels() {
+  var opts = '<option value="">Choose coach...</option>';
+  for (var i = 0; i < COACHES.length; i++) {
+    opts += '<option value="' + COACHES[i].id + '">' + COACHES[i].name + ' (' + COACHES[i].state + ')</option>';
+  }
+  document.getElementById("xf-from").innerHTML = opts;
+  document.getElementById("xf-to").innerHTML = opts;
+}
+
+function loadFrom() {
+  var id = document.getElementById("xf-from").value;
+  var s2 = document.getElementById("step2");
+  var s3 = document.getElementById("step3");
+  document.getElementById("xprev").style.display = "none";
+  if (!id) {
+    s2.style.opacity = ".4"; s2.style.pointerEvents = "none";
+    s3.style.opacity = ".4"; s3.style.pointerEvents = "none";
+    return;
+  }
+  s2.style.opacity = "1"; s2.style.pointerEvents = "auto";
+  s3.style.opacity = "1"; s3.style.pointerEvents = "auto";
+  var c = null;
+  for (var i = 0; i < COACHES.length; i++) { if (COACHES[i].id === id) { c = COACHES[i]; break; } }
+  if (!c) return;
+  var html = '<div class="ilist">';
+  var any = false;
+  var progs = Object.keys(c.eq);
+  for (var pi = 0; pi < progs.length; pi++) {
+    var prog = progs[pi];
+    var its = c.eq[prog] || [];
+    for (var ii = 0; ii < its.length; ii++) {
+      var raw = its[ii];
+      var ci = raw.lastIndexOf(":");
+      var name = ci > -1 ? raw.substring(0, ci).trim() : raw;
+      var qty = pQ(ci > -1 ? raw.substring(ci + 1) : "");
+      if (qty <= 0) continue;
+      any = true;
+      var cbid = "xc-" + id + "-" + prog + "-" + ii;
+      var qid = "xq-" + id + "-" + prog + "-" + ii;
+      html += '<div class="ir">';
+      html += '<div style="display:flex;align-items:center;gap:7px">';
+      html += '<input type="checkbox" id="' + cbid + '" data-prog="' + prog + '" data-name="' + name + '" onchange="upSum()" style="width:15px;height:15px;accent-color:#CC0000">';
+      html += '<label for="' + cbid + '" style="cursor:pointer;font-size:12px;font-weight:600;color:' + (PC[prog] || "#888") + ';text-transform:none;letter-spacing:0;margin:0">' + name + '</label>';
+      html += '<span style="font-size:11px;color:#888">(' + qty + ' avail)</span>';
+      html += '</div>';
+      html += '<input type="number" min="1" max="' + qty + '" value="1" id="' + qid + '" onchange="upSum()" style="width:55px">';
+      html += '</div>';
+    }
+  }
+  html += '</div>';
+  document.getElementById("from-items").innerHTML = any ? html : '<div style="font-size:12px;color:#888;padding:7px 0">No equipment to transfer.</div>';
+}
+
+function upSum() {
+  var fromId = document.getElementById("xf-from").value;
+  var toId = document.getElementById("xf-to").value;
+  var cbs = document.querySelectorAll("#from-items input[type=checkbox]:checked");
+  var prev = document.getElementById("xprev");
+  if (!fromId || !toId || fromId === toId || !cbs.length) { prev.style.display = "none"; return; }
+  var from = null; var to = null;
+  for (var i = 0; i < COACHES.length; i++) {
+    if (COACHES[i].id === fromId) from = COACHES[i];
+    if (COACHES[i].id === toId) to = COACHES[i];
+  }
+  var lines = "";
+  for (var i = 0; i < cbs.length; i++) {
+    var cb = cbs[i];
+    var prog = cb.dataset.prog;
+    var name = cb.dataset.name;
+    var idx = cb.id.split("-").pop();
+    var qty = parseInt(document.getElementById("xq-" + fromId + "-" + prog + "-" + idx).value) || 1;
+    lines += '<div style="display:flex;justify-content:space-between;padding:3px 0;font-size:12px">';
+    lines += '<span style="color:' + (PC[prog] || "#888") + ';font-weight:600">' + name + '</span>';
+    lines += '<span><strong>' + qty + '</strong> unit' + (qty !== 1 ? "s" : "") + '</span></div>';
+  }
+  document.getElementById("xsumbox").innerHTML = '<div style="font-weight:700;margin-bottom:7px">Transfer summary</div><div style="font-size:12px;color:#888;margin-bottom:7px"><strong style="color:#111">' + from.name + '</strong> &rarr; <strong style="color:#111">' + to.name + '</strong></div>' + lines;
+  prev.style.display = "block";
+}
+
+function doTransfer() {
+  var fromId = document.getElementById("xf-from").value;
+  var toId = document.getElementById("xf-to").value;
+  var from = null; var to = null;
+  for (var i = 0; i < COACHES.length; i++) {
+    if (COACHES[i].id === fromId) from = COACHES[i];
+    if (COACHES[i].id === toId) to = COACHES[i];
+  }
+  var cbs = document.querySelectorAll("#from-items input[type=checkbox]:checked");
+  for (var ci2 = 0; ci2 < cbs.length; ci2++) {
+    var cb = cbs[ci2];
+    var prog = cb.dataset.prog;
+    var name = cb.dataset.name;
+    var idx = cb.id.split("-").pop();
+    var qty = parseInt(document.getElementById("xq-" + fromId + "-" + prog + "-" + idx).value) || 1;
+    var fi = from.eq[prog] || [];
+    for (var i = 0; i < fi.length; i++) {
+      var sep = fi[i].lastIndexOf(":");
+      var iname = sep > -1 ? fi[i].substring(0, sep).trim() : "";
+      if (iname === name) {
+        var cur = pQ(sep > -1 ? fi[i].substring(sep + 1) : "");
+        var nt = pN(sep > -1 ? fi[i].substring(sep + 1) : "");
+        fi[i] = name + ":" + Math.max(0, cur - qty) + (nt ? " " + nt : "");
+        break;
+      }
+    }
+    if (!to.eq[prog]) to.eq[prog] = [];
+    var ti = to.eq[prog];
+    var found = false;
+    for (var i = 0; i < ti.length; i++) {
+      var sep = ti[i].lastIndexOf(":");
+      var iname = sep > -1 ? ti[i].substring(0, sep).trim() : "";
+      if (iname === name) {
+        var cur = pQ(sep > -1 ? ti[i].substring(sep + 1) : "");
+        var nt = pN(sep > -1 ? ti[i].substring(sep + 1) : "");
+        ti[i] = name + ":" + (cur + qty) + (nt ? " " + nt : "");
+        found = true; break;
+      }
+    }
+    if (!found) ti.push(name + ":" + qty);
+    xferHistory.unshift({item:name,qty:qty,from:from.name,to:to.name,prog:prog,date:todayISO()});
+  }
+  resetXfer();
+  renderCoaches(); renderOverview(); renderHistory();
+  alert("Transfer complete!");
+}
+
+function resetXfer() {
+  document.getElementById("xf-from").value = "";
+  document.getElementById("xf-to").value = "";
+  document.getElementById("from-items").innerHTML = '<div style="font-size:12px;color:#888;padding:7px 0">Select a coach above first.</div>';
+  document.getElementById("step2").style.opacity = ".4"; document.getElementById("step2").style.pointerEvents = "none";
+  document.getElementById("step3").style.opacity = ".4"; document.getElementById("step3").style.pointerEvents = "none";
+  document.getElementById("xprev").style.display = "none";
+}
+
+function quickXfer(id) {
+  var nts = document.querySelectorAll(".nt");
+  goTab("transfer", nts[2]);
+  setTimeout(function() { document.getElementById("xf-from").value = id; loadFrom(); }, 50);
+}
+
+function renderHistory() {
+  var el = document.getElementById("hlist");
+  if (!xferHistory.length) { el.innerHTML = '<div style="text-align:center;padding:28px;color:#888">No transfers yet.</div>'; return; }
+  var html = "";
+  for (var i = 0; i < xferHistory.length; i++) {
+    var h = xferHistory[i];
+    html += '<div class="hrow"><div class="hic">X</div><div>';
+    html += '<div style="font-weight:700">' + h.qty + 'x ' + h.item + ' <span style="color:' + (PC[h.prog] || "#888") + ';font-size:10px">[' + h.prog + ']</span></div>';
+    html += '<div style="color:#888;font-size:11px">' + h.from + ' to ' + h.to + '</div>';
+    html += '<div style="color:#aaa;font-size:10px">' + h.date + '</div>';
+    html += '</div></div>';
+  }
+  el.innerHTML = html;
+}
+
+function openEdit(id) {
+  editingId = id;
+  var c = null;
+  for (var i = 0; i < COACHES.length; i++) { if (COACHES[i].id === id) { c = COACHES[i]; break; } }
+  if (!c) return;
+  document.getElementById("em-t").textContent = "Edit Equipment - " + c.name;
+  document.getElementById("em-notes").value = c.notes || "";
+  var html = "";
+  var progs = Object.keys(c.eq);
+  for (var pi = 0; pi < progs.length; pi++) {
+    var prog = progs[pi];
+    var its = c.eq[prog] || [];
+    if (!its.length) continue;
+    html += '<div style="margin-bottom:13px"><div style="font-size:10px;font-weight:700;color:' + (PC[prog] || "#888") + ';text-transform:uppercase;letter-spacing:1px;margin-bottom:7px;padding-bottom:4px;border-bottom:2px solid ' + (PC[prog] || "#E0E0E0") + '">' + prog + '</div>';
+    for (var ii = 0; ii < its.length; ii++) {
+      var raw = its[ii];
+      var ci = raw.lastIndexOf(":");
+      var name = ci > -1 ? raw.substring(0, ci).trim() : raw;
+      var qty = pQ(ci > -1 ? raw.substring(ci + 1) : "");
+      html += '<div class="eir"><span class="ein">' + name + '</span>';
+      html += '<input type="number" min="0" value="' + qty + '" id="ei-' + prog + '-' + ii + '" style="width:65px">';
+      html += '<button class="edel" onclick="removeItem(\'' + prog + '\',' + ii + ')">x</button>';
+      html += '</div>';
+    }
+    html += '</div>';
+  }
+  document.getElementById("em-sec").innerHTML = html;
+  openM();
+}
+
+function removeItem(prog, idx) {
+  var c = null;
+  for (var i = 0; i < COACHES.length; i++) { if (COACHES[i].id === editingId) { c = COACHES[i]; break; } }
+  if (!c || !c.eq[prog]) return;
+  c.eq[prog].splice(idx, 1);
+  openEdit(editingId);
+}
+
+function addNewItem() {
+  var c = null;
+  for (var i = 0; i < COACHES.length; i++) { if (COACHES[i].id === editingId) { c = COACHES[i]; break; } }
+  if (!c) return;
+  var name = document.getElementById("ni-n").value.trim();
+  var prog = document.getElementById("ni-p").value;
+  var qty = parseInt(document.getElementById("ni-q").value) || 0;
+  if (!name) return;
+  if (!c.eq[prog]) c.eq[prog] = [];
+  c.eq[prog].push(name + ":" + qty);
+  document.getElementById("ni-n").value = "";
+  document.getElementById("ni-q").value = "";
+  openEdit(editingId);
+}
+
+function saveEdit() {
+  var c = null;
+  for (var i = 0; i < COACHES.length; i++) { if (COACHES[i].id === editingId) { c = COACHES[i]; break; } }
+  if (!c) return;
+  var progs = Object.keys(c.eq);
+  for (var pi = 0; pi < progs.length; pi++) {
+    var prog = progs[pi];
+    var its = c.eq[prog] || [];
+    for (var ii = 0; ii < its.length; ii++) {
+      var inp = document.getElementById("ei-" + prog + "-" + ii);
+      if (!inp) continue;
+      var ci = its[ii].lastIndexOf(":");
+      var name = ci > -1 ? its[ii].substring(0, ci).trim() : its[ii];
+      var nt = pN(ci > -1 ? its[ii].substring(ci + 1) : "");
+      c.eq[prog][ii] = name + ":" + (parseInt(inp.value) || 0) + (nt ? " " + nt : "");
+    }
+  }
+  c.notes = document.getElementById("em-notes").value;
+  closeM();
+  renderCoaches(); renderOverview();
+}
+
+function logOrder() {
+  var item = document.getElementById("lo-item").value.trim();
+  var sup = document.getElementById("lo-sup").value.trim();
+  var ord = document.getElementById("lo-ord").value;
+  if (!item || !sup || !ord) { alert("Please fill in Item, Supplier and Date Ordered."); return; }
+  ORDERS.unshift({
+    id: "o" + Date.now(), item: item, supplier: sup,
+    qty: parseInt(document.getElementById("lo-qty").value) || 0,
+    cost: parseFloat(document.getElementById("lo-cost").value) || 0,
+    ordered: ord, received: document.getElementById("lo-rec").value || "",
+    notes: document.getElementById("lo-notes").value
+  });
+  var ids = ["lo-item","lo-sup","lo-ord","lo-rec","lo-notes","lo-qty","lo-cost"];
+  for (var i = 0; i < ids.length; i++) document.getElementById(ids[i]).value = "";
+  renderLeadTimes(); renderOverview();
+}
+
+function markReceived(id) {
+  var o = null;
+  for (var i = 0; i < ORDERS.length; i++) { if (ORDERS[i].id === id) { o = ORDERS[i]; break; } }
+  if (!o) return;
+  var d = prompt("Date received (YYYY-MM-DD):", todayISO());
+  if (d) { o.received = d; renderLeadTimes(); }
+}
+
+function delOrder(id) {
+  if (!confirm("Delete this order?")) return;
+  var newOrders = [];
+  for (var i = 0; i < ORDERS.length; i++) { if (ORDERS[i].id !== id) newOrders.push(ORDERS[i]); }
+  ORDERS = newOrders;
+  renderLeadTimes(); renderOverview();
+}
+
+function lStatus(days) {
+  if (days <= 14) return {cls:"pg", label:"Fast", color:"#27AE60"};
+  if (days <= 30) return {cls:"pa", label:"Medium", color:"#CA8A04"};
+  return {cls:"pr", label:"Slow - plan ahead", color:"#CC0000"};
+}
+
+function renderLeadTimes() {
+  document.getElementById("lt-n").textContent = ORDERS.length;
+  var supSet = {};
+  for (var i = 0; i < ORDERS.length; i++) supSet[ORDERS[i].supplier] = 1;
+  document.getElementById("lt-sup").textContent = Object.keys(supSet).length;
+  var completed = [];
+  for (var i = 0; i < ORDERS.length; i++) { if (ORDERS[i].received) completed.push(ORDERS[i]); }
+  if (completed.length) {
+    var byItem = {};
+    for (var i = 0; i < completed.length; i++) {
+      var o = completed[i];
+      var days = dBet(o.ordered, o.received);
+      if (!byItem[o.item]) byItem[o.item] = [];
+      byItem[o.item].push(days);
+    }
+    var avgs = [];
+    var ikeys = Object.keys(byItem);
+    for (var i = 0; i < ikeys.length; i++) {
+      var k = ikeys[i]; var ds = byItem[k];
+      var sum = 0; for (var j = 0; j < ds.length; j++) sum += ds[j];
+      avgs.push({item:k, avg:Math.round(sum/ds.length), count:ds.length});
+    }
+    avgs.sort(function(a,b){return a.avg - b.avg;});
+    if (avgs.length) {
+      var fastest = avgs[0]; var slowest = avgs[avgs.length-1];
+      document.getElementById("lt-fast").textContent = fastest.item;
+      document.getElementById("lt-fast-s").textContent = fastest.avg + " days avg";
+      document.getElementById("lt-slow").textContent = slowest.item;
+      document.getElementById("lt-slow-s").textContent = slowest.avg + " days - plan ahead";
+    }
+    var iHtml = "";
+    for (var i = avgs.length-1; i >= 0; i--) {
+      var a = avgs[i]; var st = lStatus(a.avg);
+      var pct = Math.min(100, Math.round((a.avg/60)*100));
+      iHtml += '<div style="margin-bottom:13px">';
+      iHtml += '<div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:4px">';
+      iHtml += '<div><span style="font-weight:700;font-size:13px">' + a.item + '</span><span style="font-size:11px;color:#888;margin-left:5px">(' + a.count + ' order' + (a.count!==1?"s":"") + ')</span></div>';
+      iHtml += '<div style="display:flex;align-items:center;gap:7px"><span style="font-size:15px;font-weight:700;color:' + st.color + '">' + a.avg + 'd</span><span class="pill ' + st.cls + '">' + st.label + '</span></div>';
+      iHtml += '</div><div class="lbar"><div class="lfill" style="width:' + pct + '%;background:' + st.color + '"></div></div>';
+      iHtml += '<div style="font-size:10px;color:#888;margin-top:3px">Order at least <strong>' + Math.ceil(a.avg/7) + ' week' + (Math.ceil(a.avg/7)!==1?"s":"") + ' ahead</strong></div></div>';
+    }
+    document.getElementById("lt-items").innerHTML = iHtml;
+    var bySup = {};
+    for (var i = 0; i < completed.length; i++) {
+      var o = completed[i]; var days = dBet(o.ordered, o.received);
+      if (!bySup[o.supplier]) bySup[o.supplier] = {days:[],items:[]};
+      bySup[o.supplier].days.push(days);
+      if (bySup[o.supplier].items.indexOf(o.item) < 0) bySup[o.supplier].items.push(o.item);
+    }
+    var sHtml = "";
+    var skeys = Object.keys(bySup);
+    for (var i = 0; i < skeys.length; i++) {
+      var sup = skeys[i]; var d = bySup[sup];
+      var sum = 0; for (var j = 0; j < d.days.length; j++) sum += d.days[j];
+      var avg = Math.round(sum/d.days.length); var st = lStatus(avg);
+      sHtml += '<div style="display:flex;align-items:center;justify-content:space-between;padding:9px 0;border-bottom:1px solid #E0E0E0">';
+      sHtml += '<div><div style="font-weight:700;font-size:13px">' + sup + '</div><div style="font-size:11px;color:#888">' + d.days.length + ' order' + (d.days.length!==1?"s":"") + ' &middot; ' + d.items.join(", ") + '</div></div>';
+      sHtml += '<div style="text-align:right"><div style="font-size:19px;font-weight:700;color:' + st.color + '">' + avg + 'd avg</div><div style="font-size:10px;color:#888">lead time</div></div></div>';
+    }
+    document.getElementById("lt-sups").innerHTML = sHtml || '<div style="color:#888;font-size:12px;padding:8px 0">No completed orders yet.</div>';
+  } else {
+    document.getElementById("lt-items").innerHTML = '<div style="text-align:center;padding:18px;color:#888;font-size:12px">Mark orders as received to see averages.</div>';
+    document.getElementById("lt-sups").innerHTML = '<div style="text-align:center;padding:18px;color:#888;font-size:12px">No completed orders yet.</div>';
+  }
+  var rows = "";
+  for (var i = 0; i < ORDERS.length; i++) {
+    var o = ORDERS[i];
+    var done = !!o.received;
+    var days = done ? dBet(o.ordered, o.received) : null;
+    var overdue = !done && o.ordered && dBet(o.ordered, todayISO()) > 45;
+    var st = days !== null ? lStatus(days) : {cls:"pb",color:"#6699CC"};
+    rows += '<tr' + (overdue ? ' style="background:#FFF8E1"' : '') + '>';
+    rows += '<td style="color:#888">' + (i+1) + '</td>';
+    rows += '<td style="font-weight:700">' + o.item + '</td>';
+    rows += '<td>' + o.supplier + '</td>';
+    rows += '<td>' + (o.qty || "n/a") + '</td>';
+    rows += '<td>' + (o.cost ? "$" + o.cost.toFixed(2) : "n/a") + '</td>';
+    rows += '<td style="font-size:12px">' + fDate(o.ordered) + '</td>';
+    rows += '<td style="font-size:12px">' + (o.received ? fDate(o.received) : '<span style="color:#F5A623;font-size:11px;font-weight:600">Pending</span>') + '</td>';
+    rows += '<td>' + (days !== null ? '<span style="font-weight:700;color:' + st.color + '">' + days + 'd</span>' : "n/a") + '</td>';
+    rows += '<td>' + (done ? '<span class="pill pg">Received</span>' : overdue ? '<span class="pill pr">Overdue</span>' : '<span class="pill pb">On Order</span>') + '</td>';
+    rows += '<td style="font-size:11px;color:#888">' + (o.notes || "") + '</td>';
+    rows += '<td style="white-space:nowrap">';
+    if (!done) rows += '<button onclick="markReceived(\'' + o.id + '\')" style="padding:3px 7px;border-radius:5px;border:1px solid #E0E0E0;background:#EAF7EE;color:#27AE60;font-size:10px;font-weight:700;cursor:pointer;margin-right:3px">Received</button>';
+    rows += '<button onclick="delOrder(\'' + o.id + '\')" style="padding:3px 7px;border-radius:5px;border:1px solid #E0E0E0;background:#FDECEA;color:#CC0000;font-size:10px;font-weight:700;cursor:pointer">Delete</button>';
+    rows += '</td></tr>';
+  }
+  document.getElementById("lt-log").innerHTML = rows || '<tr><td colspan="11" style="text-align:center;padding:28px;color:#888">No orders yet.</td></tr>';
+}
+
+function renderStock(cat) {
+  cat = cat || "all";
+  var list = cat === "all" ? ITEMS : [];
+  if (cat !== "all") { for (var i = 0; i < ITEMS.length; i++) { if (ITEMS[i].cat === cat) list.push(ITEMS[i]); } }
+  var cc = {Sports:"#EFF6FF",Music:"#FDF2F8",Gymnastics:"#F0FDF4",Yoga:"#FEFCE8",Other:"#F9F9F9"};
+  var ct = {Sports:"#2563EB",Music:"#DB2777",Gymnastics:"#16A34A",Yoga:"#CA8A04",Other:"#888"};
+  var html = "";
+  for (var i = 0; i < list.length; i++) {
+    var item = list[i];
+    var s = item.stock === 0 ? "Enter" : (item.min > 0 && item.stock <= item.min ? "Low" : "OK");
+    var pill = s === "OK" ? '<span class="pill pg">OK</span>' : s === "Low" ? '<span class="pill pa">Low</span>' : '<span class="pill pb">Enter stock</span>';
+    html += '<tr' + (s === "Low" ? ' style="background:#fffbf0"' : '') + '>';
+    html += '<td style="font-weight:700">' + item.name + '</td>';
+    html += '<td><span style="background:' + (cc[item.cat]||"#F4F4F4") + ';color:' + (ct[item.cat]||"#888") + ';padding:2px 8px;border-radius:4px;font-size:10px;font-weight:700">' + item.cat + '</span></td>';
+    html += '<td><input type="number" value="' + item.stock + '" min="0" onchange="(function(v){for(var i=0;i<ITEMS.length;i++){if(ITEMS[i].id===\'' + item.id + '\'){ITEMS[i].stock=parseInt(v)||0;renderOverview();break;}}})(this.value)"></td>';
+    html += '<td style="color:#888">' + item.min + '</td><td style="color:#888">' + item.reorder + '</td><td>' + pill + '</td></tr>';
+  }
+  document.getElementById("sbody").innerHTML = html;
+}
+
+document.getElementById("lo-ord").value = todayISO();
+populateSels();
+renderOverview();
+renderCoaches();
+renderStock("all");
+renderLeadTimes();
+renderHistory();
+</script>
+</body>
+</html>
