@@ -144,6 +144,9 @@ label{font-size:10px;font-weight:700;color:#888;display:block;margin-bottom:3px;
     <div class="kpi" style="border-top-color:#CC0000"><div class="kl">Coach Issues</div><div class="kv" style="color:#CC0000" id="kv-i">0</div><div class="ks">Low equipment</div></div>
     <div class="kpi" style="border-top-color:#27AE60"><div class="kl">Orders Logged</div><div class="kv" style="color:#27AE60" id="kv-o">1</div><div class="ks">Lead time tracking</div></div>
   </div>
+  <div class="kpi" style="border-top-color:#CC0000"><div class="kl">With Coaches</div><div class="kv" style="color:#CC0000" id="kv-coach-total">0</div><div class="ks">Total equipment items</div></div>
+        <div class="kpi" style="border-top-color:#111111"><div class="kl">Grand Total</div><div class="kv" style="color:#111111" id="kv-grand-total">0</div><div class="ks">Coaches + Stockroom</div></div>
+  </div>
   <div class="g2">
     <div class="card"><div class="ct">Alerts</div><div id="ov-al"></div></div>
     <div class="card"><div class="ct">Coaches by State</div><div id="ov-st"></div></div>
@@ -831,6 +834,30 @@ renderCoaches();
 renderStock("all");
 renderLeadTimes();
 renderHistory();
+
+function calcStats() {
+    var coachTotal = 0;
+    var stockroomTotal = 0;
+    COACHES.forEach(function(c) {
+        var isStock = c.name === 'Stockroom';
+        Object.values(c.eq || {}).forEach(function(items) {
+            items.forEach(function(entry) {
+                var ci = entry.lastIndexOf(':');
+                if (ci > -1) {
+                    var qty = parseInt(entry.substring(ci+1)) || 0;
+                    if (isStock) stockroomTotal += qty;
+                    else coachTotal += qty;
+                }
+            });
+        });
+    });
+    var el1 = document.getElementById('kv-coach-total');
+    var el2 = document.getElementById('kv-grand-total');
+    if (el1) el1.textContent = coachTotal;
+    if (el2) el2.textContent = coachTotal + stockroomTotal;
+}
+window.addEventListener('load', calcStats);
+
 </script>
 </body>
 </html>
