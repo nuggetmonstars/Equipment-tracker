@@ -341,7 +341,7 @@ function closeM() { document.getElementById("editModal").classList.remove("open"
 
 function renderOverview() {
   var issues = [];
-  for (var i = 0; i < COACHES.length; i++) { if (hasIssue(COACHES[i])) issues.push(COACHES[i]); }
+  for (var i = 0; i < COACHES.length; i++) { if (COACHES[i].name !== "Stockroom" && hasIssue(COACHES[i])) issues.push(COACHES[i]); }
   document.getElementById("kv-x").textContent = xferHistory.length;
   document.getElementById("kv-i").textContent = issues.length;
   document.getElementById("kv-o").textContent = ORDERS.length;
