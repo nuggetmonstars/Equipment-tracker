@@ -133,6 +133,7 @@ label{font-size:10px;font-weight:700;color:#888;display:block;margin-bottom:3px;
   <button class="nt" onclick="goTab('history',this)">Transfer History</button>
   <button class="nt" onclick="goTab('leadtimes',this)">Lead Times</button>
   <button class="nt" onclick="goTab('stock',this)">Stock Levels</button>
+    <button class="nt" onclick="goTab('totals',this)">Equipment Totals</button>
 </nav>
 <main>
 
@@ -243,6 +244,15 @@ label{font-size:10px;font-weight:700;color:#888;display:block;margin-bottom:3px;
     <table class="tbl"><thead><tr><th>Item</th><th>Category</th><th>In Stock</th><th>Min</th><th>Reorder</th><th>Status</th></tr></thead>
     <tbody id="sbody"></tbody></table>
   </div>
+</div>
+
+<div class="view" id="view-totals">
+  <div class="g5 mb">
+    <div class="kpi" style="border-top-color:#CC0000"><div class="kl">With Coaches</div><div class="kv" style="color:#CC0000" id="kv-coach-total2">0</div><div class="ks">Total items out</div></div>
+    <div class="kpi" style="border-top-color:#111111"><div class="kl">In Stockroom</div><div class="kv" style="color:#111111" id="kv-stock-total2">0</div><div class="ks">Total items held</div></div>
+    <div class="kpi" style="border-top-color:#6699CC"><div class="kl">Grand Total</div><div class="kv" style="color:#6699CC" id="kv-grand-total2">0</div><div class="ks">All items combined</div></div>
+  </div>
+  <div id="totals-content"></div>
 </div>
 </main>
 
@@ -857,6 +867,68 @@ function calcStats() {
     if (el2) el2.textContent = coachTotal + stockroomTotal;
 }
 window.addEventListener('load', calcStats);
+
+
+function buildTotals() {
+    var programs = {};
+    var stockroom = {};
+    COACHES.forEach(function(c) {
+        var isStock = c.name === 'Stockroom';
+        Object.keys(c.eq || {}).forEach(function(prog) {
+            c.eq[prog].forEach(function(entry) {
+                var ci = entry.lastIndexOf(':');
+                var name = ci > -1 ? entry.substring(0, ci).trim() : entry;
+                var qty = ci > -1 ? (parseInt(entry.substring(ci+1)) || 0) : 0;
+                if (isStock) {
+                    stockroom[name] = (stockroom[name] || 0) + qty;
+                } else {
+                    if (!programs[prog]) programs[prog] = {};
+                    programs[prog][name] = (programs[prog][name] || 0) + qty;
+                }
+            });
+        });
+    });
+
+    var coachTotal = 0, stockTotal = 0;
+    Object.values(programs).forEach(function(items) { Object.values(items).forEach(function(q) { coachTotal += q; }); });
+    Object.values(stockroom).forEach(function(q) { stockTotal += q; });
+
+    var el1 = document.getElementById('kv-coach-total2');
+    var el2 = document.getElementById('kv-stock-total2');
+    var el3 = document.getElementById('kv-grand-total2');
+    if (el1) el1.textContent = coachTotal;
+    if (el2) el2.textContent = stockTotal;
+    if (el3) el3.textContent = coachTotal + stockTotal;
+
+    var html = '';
+    var progOrder = ['Sports','Music','Gymnastics','Yoga','Sensory','Other'];
+    var allProgs = progOrder.filter(function(p) { return programs[p]; });
+    Object.keys(programs).forEach(function(p) { if (allProgs.indexOf(p) === -1) allProgs.push(p); });
+
+    allProgs.forEach(function(prog) {
+        if (!programs[prog]) return;
+        html += '<div class="card" style="margin-bottom:20px"><div class="card-title">' + prog + '</div>';
+        html += '<table style="width:100%;border-collapse:collapse">';
+        html += '<tr style="background:#111;color:#fff"><th style="padding:8px;text-align:left">Item</th><th style="padding:8px;text-align:center">With Coaches</th><th style="padding:8px;text-align:center">Stockroom</th><th style="padding:8px;text-align:center">Grand Total</th></tr>';
+        var items = Object.keys(programs[prog]).sort();
+        items.forEach(function(item, i) {
+            var coaches_qty = programs[prog][item] || 0;
+            var stock_qty = stockroom[item] || 0;
+            var total = coaches_qty + stock_qty;
+            var bg = i % 2 === 0 ? '#f9f9f9' : '#fff';
+            html += '<tr style="background:' + bg + '">';
+            html += '<td style="padding:8px">' + item + '</td>';
+            html += '<td style="padding:8px;text-align:center">' + coaches_qty + '</td>';
+            html += '<td style="padding:8px;text-align:center">' + stock_qty + '</td>';
+            html += '<td style="padding:8px;text-align:center;font-weight:bold">' + total + '</td>';
+            html += '</tr>';
+        });
+        html += '</table></div>';
+    });
+    var el = document.getElementById('totals-content');
+    if (el) el.innerHTML = html;
+}
+window.addEventListener('load', buildTotals);
 
 </script>
 </body>
