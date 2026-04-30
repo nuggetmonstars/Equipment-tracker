@@ -241,7 +241,7 @@ label{font-size:10px;font-weight:700;color:#888;display:block;margin-bottom:3px;
     </select>
   </div>
   <div style="overflow-x:auto;border-radius:10px;border:1px solid #E0E0E0;background:white">
-    <table class="tbl"><thead><tr><th>Item</th><th>Category</th><th>In Stock</th><th>Min</th><th>Reorder</th><th>Status</th></tr></thead>
+    <table class="tbl"><thead><tr><th>Item</th><th>Category</th><th>Stockroom</th><th>With Coaches</th><th>Total</th><th>Min</th><th>Reorder</th><th>Status</th></tr></thead>
     <tbody id="sbody"></tbody></table>
   </div>
 </div>
@@ -819,6 +819,41 @@ function renderLeadTimes() {
 
 function renderStock(cat) {
   cat = cat || "all";
+
+  // Build stockroom lookup from COACHES[0] (Stockroom entry)
+  var stockroom = {};
+  var stockroomCoach = null;
+  for (var ci = 0; ci < COACHES.length; ci++) {
+    if (COACHES[ci].name === 'Stockroom') { stockroomCoach = COACHES[ci]; break; }
+  }
+  if (stockroomCoach && stockroomCoach.eq) {
+    for (var prog in stockroomCoach.eq) {
+      var items = stockroomCoach.eq[prog];
+      for (var ii = 0; ii < items.length; ii++) {
+        var parts = items[ii].split(':');
+        var iname = parts[0].trim();
+        var iqty = parseInt(parts[1]) || 0;
+        stockroom[iname] = (stockroom[iname] || 0) + iqty;
+      }
+    }
+  }
+
+  // Build with-coaches lookup (excluding Stockroom)
+  var withCoaches = {};
+  for (var ci = 0; ci < COACHES.length; ci++) {
+    if (COACHES[ci].name === 'Stockroom') continue;
+    if (!COACHES[ci].eq) continue;
+    for (var prog in COACHES[ci].eq) {
+      var items = COACHES[ci].eq[prog];
+      for (var ii = 0; ii < items.length; ii++) {
+        var parts = items[ii].split(':');
+        var iname = parts[0].trim();
+        var iqty = parseInt(parts[1]) || 0;
+        withCoaches[iname] = (withCoaches[iname] || 0) + iqty;
+      }
+    }
+  }
+
   var list = cat === "all" ? ITEMS : [];
   if (cat !== "all") { for (var i = 0; i < ITEMS.length; i++) { if (ITEMS[i].cat === cat) list.push(ITEMS[i]); } }
   var cc = {Sports:"#EFF6FF",Music:"#FDF2F8",Gymnastics:"#F0FDF4",Yoga:"#FEFCE8",Other:"#F9F9F9"};
@@ -826,12 +861,18 @@ function renderStock(cat) {
   var html = "";
   for (var i = 0; i < list.length; i++) {
     var item = list[i];
-    var s = item.stock === 0 ? "Enter" : (item.min > 0 && item.stock <= item.min ? "Low" : "OK");
-    var pill = s === "OK" ? '<span class="pill pg">OK</span>' : s === "Low" ? '<span class="pill pa">Low</span>' : '<span class="pill pb">Enter stock</span>';
-    html += '<tr' + (s === "Low" ? ' style="background:#fffbf0"' : '') + '>';
+    // Find matching stockroom qty by name
+    var stockQty = stockroom[item.name] || 0;
+    var coachQty = withCoaches[item.name] || 0;
+    var total = stockQty + coachQty;
+    var s = total === 0 ? "None" : (item.min > 0 && stockQty <= item.min ? "Low" : "OK");
+    var pill = s === "OK" ? '<span class="pill pg">OK</span>' : s === "Low" ? '<span class="pill pa">Low</span>' : '<span class="pill pb">None in stock</span>';
+    html += '<tr' + (s === "Low" ? ' style="background:#fffbf0"' : s === "None" ? ' style="background:#fdecea"' : '') + '>';
     html += '<td style="font-weight:700">' + item.name + '</td>';
     html += '<td><span style="background:' + (cc[item.cat]||"#F4F4F4") + ';color:' + (ct[item.cat]||"#888") + ';padding:2px 8px;border-radius:4px;font-size:10px;font-weight:700">' + item.cat + '</span></td>';
-    html += '<td><input type="number" value="' + item.stock + '" min="0" onchange="(function(v){for(var i=0;i<ITEMS.length;i++){if(ITEMS[i].id===\'' + item.id + '\'){ITEMS[i].stock=parseInt(v)||0;renderOverview();break;}}})(this.value)"></td>';
+    html += '<td style="font-weight:700;color:#111">' + stockQty + '</td>';
+    html += '<td style="color:#888">' + coachQty + '</td>';
+    html += '<td style="font-weight:700">' + total + '</td>';
     html += '<td style="color:#888">' + item.min + '</td><td style="color:#888">' + item.reorder + '</td><td>' + pill + '</td></tr>';
   }
   document.getElementById("sbody").innerHTML = html;
