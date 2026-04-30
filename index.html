@@ -1,0 +1,215 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Mini Monstars — Command Centre</title>
+<link href="https://fonts.googleapis.com/css2?family=Nunito:wght@400;600;700;800;900&display=swap" rel="stylesheet">
+<style>
+:root {
+  --sky: #29ABE2;
+  --yellow: #FFD700;
+  --yellow-dark: #e6b800;
+  --red: #E31E24;
+  --green: #4CAF50;
+  --orange: #F7941D;
+  --purple: #9C27B0;
+  --navy: #1a1a2e;
+  --font: 'Nunito', sans-serif;
+}
+*, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+html, body { min-height: 100vh; font-family: var(--font); background: var(--sky); overflow-x: hidden; }
+
+body::before {
+  content: ''; position: fixed; inset: 0; z-index: 0; pointer-events: none;
+  background:
+    linear-gradient(135deg, transparent 35%, rgba(255,215,0,0.18) 35%, rgba(255,215,0,0.18) 43%, transparent 43%),
+    linear-gradient(135deg, transparent 52%, rgba(255,215,0,0.12) 52%, rgba(255,215,0,0.12) 60%, transparent 60%),
+    linear-gradient(225deg, transparent 25%, rgba(255,215,0,0.15) 25%, rgba(255,215,0,0.15) 33%, transparent 33%),
+    linear-gradient(225deg, transparent 44%, rgba(255,215,0,0.1) 44%, rgba(255,215,0,0.1) 52%, transparent 52%);
+}
+
+.page { position: relative; z-index: 1; min-height: 100vh; display: flex; flex-direction: column; align-items: center; justify-content: center; padding: 40px 20px; }
+
+/* LOGO */
+.logo-wrap { text-align: center; margin-bottom: 12px; }
+.logo-star { font-size: 56px; animation: pulse 2s ease-in-out infinite; display: inline-block; }
+@keyframes pulse { 0%,100% { transform: scale(1); } 50% { transform: scale(1.08); } }
+.logo-text { font-size: 42px; font-weight: 900; color: #fff; text-shadow: 0 4px 12px rgba(0,0,0,0.25); letter-spacing: -1px; line-height: 1; }
+.logo-text span { color: var(--yellow); }
+.logo-sub { font-size: 14px; font-weight: 700; color: rgba(255,255,255,0.75); margin-top: 6px; letter-spacing: 2px; text-transform: uppercase; }
+
+/* MISSION */
+.mission { background: rgba(255,255,255,0.15); border: 2px solid rgba(255,255,255,0.25); border-radius: 20px; padding: 12px 24px; margin: 20px 0 36px; max-width: 600px; text-align: center; }
+.mission p { font-size: 13px; color: rgba(255,255,255,0.9); font-style: italic; font-weight: 600; line-height: 1.6; }
+
+/* CARDS GRID */
+.cards { display: grid; grid-template-columns: repeat(2, 1fr); gap: 16px; max-width: 780px; width: 100%; margin-bottom: 32px; }
+
+.card {
+  background: rgba(255,255,255,0.15);
+  border: 2px solid rgba(255,255,255,0.25);
+  border-radius: 24px; padding: 28px 24px;
+  text-decoration: none; color: inherit;
+  display: flex; flex-direction: column; align-items: flex-start;
+  transition: transform .15s, background .15s, border-color .15s, box-shadow .15s;
+  position: relative; overflow: hidden;
+  box-shadow: 0 6px 20px rgba(0,0,0,0.15);
+}
+.card::before {
+  content: ''; position: absolute; inset: 0;
+  background: linear-gradient(135deg, rgba(255,255,255,0.08) 0%, transparent 60%);
+  border-radius: 22px;
+}
+.card:hover {
+  transform: translateY(-4px);
+  background: rgba(255,255,255,0.25);
+  border-color: rgba(255,255,255,0.5);
+  box-shadow: 0 12px 32px rgba(0,0,0,0.2);
+}
+.card:active { transform: translateY(-1px); }
+
+.card-icon { font-size: 40px; margin-bottom: 14px; filter: drop-shadow(0 2px 4px rgba(0,0,0,0.2)); }
+.card-title { font-size: 22px; font-weight: 900; color: #fff; text-shadow: 0 2px 4px rgba(0,0,0,0.2); margin-bottom: 6px; }
+.card-desc { font-size: 13px; color: rgba(255,255,255,0.8); font-weight: 600; line-height: 1.5; }
+.card-tags { display: flex; gap: 6px; margin-top: 14px; flex-wrap: wrap; }
+.card-tag { font-size: 10px; font-weight: 800; padding: 3px 10px; border-radius: 20px; background: rgba(255,255,255,0.2); color: #fff; }
+
+/* Card accent colours */
+.card-coaches { border-color: rgba(247,195,26,0.5); }
+.card-coaches:hover { border-color: var(--yellow); }
+.card-coaches .card-icon-bg { background: rgba(247,195,26,0.2); }
+
+.card-centres { border-color: rgba(76,175,80,0.5); }
+.card-centres:hover { border-color: #4CAF50; }
+
+.card-travel { border-color: rgba(107,174,214,0.5); }
+.card-travel:hover { border-color: #6BAED6; }
+
+.card-equipment { border-color: rgba(247,148,29,0.5); }
+.card-equipment:hover { border-color: var(--orange); }
+
+.card-arrow {
+  position: absolute; bottom: 20px; right: 20px;
+  font-size: 20px; color: rgba(255,255,255,0.4);
+  transition: transform .15s, color .15s;
+}
+.card:hover .card-arrow { transform: translateX(4px); color: rgba(255,255,255,0.8); }
+
+/* FULL WIDTH CARD */
+.cards-full { max-width: 780px; width: 100%; margin-bottom: 32px; }
+.card-full {
+  background: rgba(255,255,255,0.15);
+  border: 2px solid rgba(255,255,255,0.25);
+  border-radius: 24px; padding: 24px 28px;
+  text-decoration: none; color: inherit;
+  display: flex; align-items: center; gap: 20px;
+  transition: transform .15s, background .15s, border-color .15s, box-shadow .15s;
+  box-shadow: 0 6px 20px rgba(0,0,0,0.15);
+}
+.card-full:hover {
+  transform: translateY(-3px);
+  background: rgba(255,255,255,0.25);
+  border-color: rgba(255,255,255,0.5);
+  box-shadow: 0 10px 28px rgba(0,0,0,0.2);
+}
+.card-full-icon { font-size: 36px; flex-shrink: 0; }
+.card-full-info { flex: 1; }
+.card-full-title { font-size: 20px; font-weight: 900; color: #fff; margin-bottom: 4px; }
+.card-full-desc { font-size: 13px; color: rgba(255,255,255,0.8); font-weight: 600; }
+
+/* FOOTER */
+.footer { font-size: 11px; color: rgba(255,255,255,0.45); font-weight: 600; text-align: center; }
+.footer span { color: rgba(255,255,255,0.6); }
+
+/* STATS ROW */
+.live-stats { display: flex; gap: 10px; justify-content: center; flex-wrap: wrap; margin-bottom: 28px; }
+.lstat { background: var(--yellow); border-radius: 50px; padding: 8px 18px; box-shadow: 0 3px 0 var(--yellow-dark); text-align: center; }
+.lstat-val { font-size: 20px; font-weight: 900; color: #333; line-height: 1; }
+.lstat-label { font-size: 10px; font-weight: 900; color: #6b4a00; text-transform: uppercase; letter-spacing: .5px; }
+
+@media (max-width: 560px) {
+  .cards { grid-template-columns: 1fr; }
+  .logo-text { font-size: 32px; }
+  .card { padding: 22px 18px; }
+}
+</style>
+</head>
+<body>
+<div class="page">
+
+  <!-- LOGO -->
+  <div class="logo-wrap">
+    <div class="logo-star">⭐</div>
+    <div class="logo-text">MINI MONST<span>★</span>RS</div>
+    <div class="logo-sub">Command Centre</div>
+  </div>
+
+  <!-- MISSION -->
+  <div class="mission">
+    <p>"Engaged, enthusiastic coaches inspiring kids to move, have fun, and build lifelong motor skills through purposeful movement."</p>
+  </div>
+
+  <!-- MAIN CARDS -->
+  <div class="cards">
+
+    <a href="coaches.html" class="card card-coaches">
+      <div class="card-icon">🏆</div>
+      <div class="card-title">Coach Dashboard</div>
+      <div class="card-desc">Leaderboard, scores, pillar breakdowns, alerts and rewards for all active coaches.</div>
+      <div class="card-tags">
+        <span class="card-tag">Leaderboard</span>
+        <span class="card-tag">Scoring</span>
+        <span class="card-tag">Alerts</span>
+        <span class="card-tag">Rewards</span>
+      </div>
+      <div class="card-arrow">→</div>
+    </a>
+
+    <a href="centres.html" class="card card-centres">
+      <div class="card-icon">📍</div>
+      <div class="card-title">Centres Map</div>
+      <div class="card-desc">Interactive map of all 217 active centres across Australia with program and coach info.</div>
+      <div class="card-tags">
+        <span class="card-tag">Live Map</span>
+        <span class="card-tag">217 Centres</span>
+        <span class="card-tag">VIC · NSW · QLD · WA · SA</span>
+      </div>
+      <div class="card-arrow">→</div>
+    </a>
+
+    <a href="travel.html" class="card card-travel">
+      <div class="card-icon">🚗</div>
+      <div class="card-title">Travel Tracker</div>
+      <div class="card-desc">Coach KM tracking, payroll reimbursements, PT hours, scheduling flags and optimisation.</div>
+      <div class="card-tags">
+        <span class="card-tag">Payroll</span>
+        <span class="card-tag">PT Hours</span>
+        <span class="card-tag">Flags</span>
+        <span class="card-tag">Optimisation</span>
+      </div>
+      <div class="card-arrow">→</div>
+    </a>
+
+    <a href="tracker_main.html" class="card card-equipment">
+      <div class="card-icon">📦</div>
+      <div class="card-title">Equipment Tracker</div>
+      <div class="card-desc">Real-time equipment inventory, coach transfers and stockroom management via email.</div>
+      <div class="card-tags">
+        <span class="card-tag">Inventory</span>
+        <span class="card-tag">Transfers</span>
+        <span class="card-tag">Stockroom</span>
+      </div>
+      <div class="card-arrow">→</div>
+    </a>
+
+  </div>
+
+  <!-- FOOTER -->
+  <div class="footer">
+    Mini Monstars Internal Tools &nbsp;·&nbsp; <span>Built with ♥ for the MM team</span>
+  </div>
+
+</div>
+</body>
+</html>
