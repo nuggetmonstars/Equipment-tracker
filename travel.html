@@ -1,0 +1,1515 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Mini Monstars — Travel Tracker</title>
+<link href="https://fonts.googleapis.com/css2?family=Nunito:wght@400;600;700;800;900&display=swap" rel="stylesheet">
+<style>
+:root {
+  --sky: #29ABE2;
+  --yellow: #FFD700;
+  --yellow-dark: #e6b800;
+  --red: #E31E24;
+  --green: #4CAF50;
+  --orange: #F7941D;
+  --purple: #9C27B0;
+  --navy: #1a1a2e;
+  --navy2: #16213e;
+  --card: #1e2a45;
+  --border: rgba(255,255,255,0.08);
+  --font: 'Nunito', sans-serif;
+  --km-threshold: 5;
+  --km-rate: 0.80;
+}
+*, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+html, body { min-height: 100vh; font-family: var(--font); background: var(--sky); overflow-x: hidden; }
+body::before {
+  content: ''; position: fixed; inset: 0; z-index: 0; pointer-events: none;
+  background:
+    linear-gradient(135deg, transparent 40%, rgba(255,215,0,0.15) 40%, rgba(255,215,0,0.15) 47%, transparent 47%),
+    linear-gradient(225deg, transparent 30%, rgba(255,215,0,0.12) 30%, rgba(255,215,0,0.12) 37%, transparent 37%);
+}
+
+/* LOGIN */
+#login-screen { position:fixed; inset:0; z-index:1000; display:flex; align-items:center; justify-content:center; }
+.login-box { background:rgba(255,255,255,0.97); border-radius:24px; padding:40px 36px; width:340px; box-shadow:0 20px 60px rgba(0,0,0,0.3); text-align:center; }
+.login-logo { font-size:26px; font-weight:900; color:var(--red); margin-bottom:4px; }
+.login-sub { font-size:12px; color:#888; margin-bottom:24px; font-weight:600; }
+.login-box label { display:block; text-align:left; font-size:11px; font-weight:700; color:#666; margin-bottom:4px; text-transform:uppercase; letter-spacing:.5px; }
+.login-box input { display:block; width:100%; border:2px solid #e8e8e8; border-radius:10px; padding:9px 13px; font-size:14px; margin-bottom:12px; font-family:var(--font); outline:none; }
+.login-box input:focus { border-color:var(--sky); }
+.login-btn { width:100%; background:var(--yellow); color:#333; border:none; border-radius:50px; padding:12px; font-size:15px; font-weight:900; cursor:pointer; font-family:var(--font); box-shadow:0 4px 0 var(--yellow-dark); }
+.login-err { color:var(--red); font-size:12px; margin-top:8px; font-weight:700; display:none; }
+
+/* APP */
+#app { display:none; position:relative; z-index:1; min-height:100vh; padding-bottom:40px; }
+
+/* HEADER */
+.hdr { display:flex; align-items:center; gap:10px; padding:12px 20px; }
+.hdr-logo { font-size:18px; font-weight:900; color:#fff; text-shadow:0 2px 4px rgba(0,0,0,0.2); }
+.hdr-logo span { color:var(--yellow); }
+.hdr-space { flex:1; }
+.hdr-updated { font-size:11px; color:rgba(255,255,255,0.6); font-weight:600; }
+.hdr-refresh { background:rgba(255,255,255,0.2); border:2px solid rgba(255,255,255,0.35); border-radius:50%; color:#fff; width:30px; height:30px; font-size:15px; cursor:pointer; display:flex; align-items:center; justify-content:center; }
+.hdr-refresh.spinning { animation:spin .7s linear infinite; }
+@keyframes spin { to { transform:rotate(360deg); } }
+.hdr-signout { background:rgba(255,255,255,0.2); border:2px solid rgba(255,255,255,0.35); border-radius:50px; color:#fff; padding:5px 14px; font-size:12px; font-weight:700; cursor:pointer; font-family:var(--font); }
+
+/* TABS */
+.nav { display:flex; gap:6px; padding:0 20px 14px; overflow-x:auto; }
+.nav-tab { background:rgba(255,255,255,0.2); border:none; border-radius:50px; color:rgba(255,255,255,0.85); padding:8px 18px; font-size:12px; font-weight:800; cursor:pointer; font-family:var(--font); white-space:nowrap; box-shadow:0 3px 0 rgba(0,0,0,0.1); }
+.nav-tab.active { background:var(--yellow); color:#333; box-shadow:0 4px 0 var(--yellow-dark); }
+
+/* MAIN */
+.main { padding:0 20px; }
+
+/* PERIOD SELECTOR */
+.period-bar { display:flex; align-items:center; gap:10px; margin-bottom:16px; flex-wrap:wrap; }
+.period-label { font-size:12px; font-weight:800; color:rgba(255,255,255,0.8); }
+.period-btn { background:rgba(255,255,255,0.2); border:2px solid rgba(255,255,255,0.3); border-radius:50px; color:#fff; padding:6px 14px; font-size:12px; font-weight:800; cursor:pointer; font-family:var(--font); }
+.period-btn.active { background:var(--yellow); color:#333; border-color:var(--yellow-dark); }
+.period-inputs { display:flex; gap:8px; align-items:center; }
+.period-inputs input[type=date] { background:rgba(255,255,255,0.2); border:2px solid rgba(255,255,255,0.3); border-radius:10px; color:#fff; padding:6px 12px; font-size:12px; font-weight:700; font-family:var(--font); outline:none; }
+.period-inputs input[type=date]::-webkit-calendar-picker-indicator { filter:invert(1); }
+
+/* STAT PILLS */
+.stats-row { display:flex; gap:8px; margin-bottom:16px; flex-wrap:wrap; }
+.stat-pill { background:var(--yellow); border-radius:50px; padding:8px 18px; box-shadow:0 3px 0 var(--yellow-dark); }
+.stat-pill-label { font-size:10px; font-weight:900; color:#6b4a00; text-transform:uppercase; letter-spacing:.5px; }
+.stat-pill-val { font-size:20px; font-weight:900; color:#333; line-height:1.1; }
+
+/* SETTINGS BAR */
+.settings-bar { display:flex; gap:10px; align-items:center; margin-bottom:16px; flex-wrap:wrap; background:rgba(255,255,255,0.12); border:1px solid rgba(255,255,255,0.2); border-radius:14px; padding:10px 14px; }
+.settings-bar label { font-size:11px; font-weight:800; color:rgba(255,255,255,0.8); }
+.settings-bar input[type=number] { background:rgba(255,255,255,0.2); border:2px solid rgba(255,255,255,0.3); border-radius:8px; color:#fff; padding:4px 8px; font-size:13px; font-weight:700; width:70px; font-family:var(--font); outline:none; }
+.settings-bar select { background:rgba(0,0,50,0.3); border:2px solid rgba(255,255,255,0.3); border-radius:8px; color:#fff; padding:4px 8px; font-size:12px; font-weight:700; font-family:var(--font); outline:none; }
+.settings-bar select option { background:#1a3060; }
+
+/* FILTERS */
+.filters { display:flex; gap:8px; margin-bottom:16px; flex-wrap:wrap; }
+.filters input, .filters select { background:rgba(255,255,255,0.2); border:2px solid rgba(255,255,255,0.3); border-radius:50px; color:#fff; padding:7px 14px; font-size:12px; font-weight:700; font-family:var(--font); outline:none; }
+.filters input { min-width:180px; }
+.filters input::placeholder { color:rgba(255,255,255,0.55); }
+.filters select option { background:#1a3060; }
+
+/* LOADING */
+.loading { text-align:center; padding:60px 0; }
+.spinner { width:36px; height:36px; border:4px solid rgba(255,255,255,0.2); border-top-color:#fff; border-radius:50%; animation:spin .7s linear infinite; margin:0 auto 12px; }
+.loading p { color:rgba(255,255,255,0.8); font-weight:700; }
+.empty { text-align:center; padding:40px; color:rgba(255,255,255,0.7); font-weight:700; }
+
+/* LEADERBOARD ROWS */
+.lb { display:flex; flex-direction:column; gap:8px; }
+.coach-row {
+  border-radius:14px; overflow:hidden;
+  box-shadow:0 4px 12px rgba(0,0,0,0.2);
+  cursor:pointer; transition:transform .15s;
+}
+.coach-row:hover { transform:translateY(-2px); }
+.coach-row-top { display:flex; align-items:center; gap:10px; padding:12px 14px; }
+.cr-rank { font-size:20px; font-weight:900; color:rgba(255,255,255,0.85); min-width:32px; text-align:center; flex-shrink:0; }
+.cr-avatar { width:42px; height:42px; border-radius:50%; border:2.5px solid rgba(255,255,255,0.7); display:flex; align-items:center; justify-content:center; font-size:14px; font-weight:900; flex-shrink:0; }
+.cr-img { width:42px; height:42px; border-radius:50%; border:2.5px solid rgba(255,255,255,0.7); object-fit:cover; flex-shrink:0; }
+.cr-info { flex:1; min-width:0; }
+.cr-name { font-size:15px; font-weight:900; color:#fff; }
+.cr-sub { font-size:11px; color:rgba(255,255,255,0.7); font-weight:700; margin-top:2px; }
+.cr-score { text-align:right; flex-shrink:0; }
+.cr-km { font-size:22px; font-weight:900; color:#fff; line-height:1; }
+.cr-pay { font-size:13px; font-weight:800; color:rgba(255,255,255,0.85); }
+.cr-chevron { color:rgba(255,255,255,0.6); font-size:11px; flex-shrink:0; transition:transform .2s; }
+.coach-row.open .cr-chevron { transform:rotate(180deg); }
+
+.cr-stats { display:flex; gap:14px; padding:0 14px 10px 56px; flex-wrap:wrap; }
+.cr-stat { font-size:11px; color:rgba(255,255,255,0.7); font-weight:700; }
+.cr-stat b { color:#fff; }
+
+/* FLAGS */
+.flag-badge { font-size:9px; font-weight:900; padding:2px 7px; border-radius:8px; margin-left:4px; }
+.flag-long { background:rgba(227,30,36,0.5); color:#fff; }
+.flag-back { background:rgba(156,39,176,0.5); color:#fff; }
+.flag-closer { background:rgba(247,148,29,0.5); color:#fff; }
+
+/* EXPANDED TRIPS */
+.cr-trips { border-top:1px solid rgba(255,255,255,0.12); padding:12px 14px; display:none; }
+.coach-row.open .cr-trips { display:block; }
+.trip-day { margin-bottom:12px; }
+.trip-day-label { font-size:11px; font-weight:900; color:rgba(255,255,255,0.6); text-transform:uppercase; letter-spacing:.6px; margin-bottom:5px; }
+.trip-row { display:flex; align-items:center; gap:8px; padding:5px 0; border-bottom:1px solid rgba(255,255,255,0.06); font-size:12px; }
+.trip-row:last-child { border-bottom:none; }
+.trip-type { font-size:10px; font-weight:800; padding:2px 7px; border-radius:8px; flex-shrink:0; }
+.trip-home { background:rgba(76,175,80,0.35); color:#90ee90; }
+.trip-c2c  { background:rgba(107,174,214,0.35); color:#add8e6; }
+.trip-route { flex:1; color:rgba(255,255,255,0.8); font-weight:700; }
+.trip-km { font-size:12px; font-weight:900; color:#fff; min-width:45px; text-align:right; }
+.trip-flag { font-size:10px; }
+.trip-time { font-size:10px; color:rgba(255,255,255,0.5); min-width:50px; }
+
+/* PAYROLL TABLE */
+.payroll-table { width:100%; border-collapse:collapse; font-size:13px; }
+.payroll-table th { background:rgba(0,0,0,0.2); color:var(--yellow); font-size:11px; font-weight:900; text-transform:uppercase; letter-spacing:.5px; padding:10px 12px; text-align:left; }
+.payroll-table td { padding:9px 12px; border-bottom:1px solid rgba(255,255,255,0.07); color:#fff; font-weight:700; }
+.payroll-table tr:hover td { background:rgba(255,255,255,0.05); }
+.payroll-table .total-row td { background:rgba(247,195,26,0.15); color:var(--yellow); font-weight:900; border-top:2px solid rgba(247,195,26,0.3); }
+.table-wrap { background:rgba(255,255,255,0.1); border:1.5px solid rgba(255,255,255,0.2); border-radius:16px; overflow:hidden; overflow-x:auto; }
+
+/* FLAGS PANEL */
+.flag-card { background:rgba(255,255,255,0.12); border:1.5px solid rgba(255,255,255,0.2); border-radius:14px; padding:14px; margin-bottom:10px; }
+.flag-card.flag-red  { border-color:rgba(227,30,36,0.4); background:rgba(227,30,36,0.1); }
+.flag-card.flag-orange { border-color:rgba(247,148,29,0.4); background:rgba(247,148,29,0.08); }
+.flag-card.flag-purple { border-color:rgba(156,39,176,0.4); background:rgba(156,39,176,0.08); }
+.flag-title { font-size:14px; font-weight:900; color:#fff; margin-bottom:6px; display:flex; align-items:center; gap:8px; }
+.flag-desc { font-size:12px; color:rgba(255,255,255,0.75); font-weight:600; line-height:1.5; }
+
+/* COACH SETTINGS */
+.settings-table { width:100%; border-collapse:collapse; font-size:13px; }
+.settings-table th { background:rgba(0,0,0,0.2); color:var(--yellow); font-size:11px; font-weight:900; text-transform:uppercase; letter-spacing:.5px; padding:10px 12px; text-align:left; }
+.settings-table td { padding:8px 12px; border-bottom:1px solid rgba(255,255,255,0.07); color:#fff; vertical-align:middle; }
+.settings-table tr:hover td { background:rgba(255,255,255,0.04); }
+.coach-type-select { background:rgba(255,255,255,0.15); border:1.5px solid rgba(255,255,255,0.25); border-radius:8px; color:#fff; padding:4px 10px; font-size:12px; font-weight:700; font-family:var(--font); outline:none; cursor:pointer; }
+.coach-type-select option { background:#1a3060; }
+.coach-hours-input { background:rgba(255,255,255,0.15); border:1.5px solid rgba(255,255,255,0.25); border-radius:8px; color:#fff; padding:4px 8px; font-size:12px; font-weight:700; width:65px; font-family:var(--font); outline:none; text-align:center; }
+.coach-hours-input:disabled { opacity:0.3; cursor:not-allowed; }
+.type-pt { color:#F7C31A; }
+.type-casual { color:#8DC63F; }
+.save-indicator { font-size:10px; color:rgba(255,255,255,0.4); font-weight:700; margin-left:6px; }
+
+/* PT HOURS */
+.pt-hours-grid { display:flex; flex-direction:column; gap:10px; }
+.pt-card {
+  background:rgba(255,255,255,0.12); border:1.5px solid rgba(255,255,255,0.2);
+  border-radius:14px; padding:14px 16px;
+}
+.pt-card.over { border-color:rgba(227,30,36,0.5); background:rgba(227,30,36,0.08); }
+.pt-card.within { border-color:rgba(76,175,80,0.4); background:rgba(76,175,80,0.05); }
+.pt-card.unset { border-color:rgba(255,255,255,0.15); opacity:0.7; }
+.pt-card-top { display:flex; align-items:center; gap:12px; margin-bottom:12px; }
+.pt-avatar { width:38px; height:38px; border-radius:50%; border:2px solid rgba(255,255,255,0.5); display:flex; align-items:center; justify-content:center; font-size:13px; font-weight:900; flex-shrink:0; }
+.pt-img { width:38px; height:38px; border-radius:50%; border:2px solid rgba(255,255,255,0.5); object-fit:cover; flex-shrink:0; }
+.pt-name { font-size:15px; font-weight:900; color:#fff; }
+.pt-state { font-size:11px; color:rgba(255,255,255,0.6); font-weight:700; margin-top:2px; }
+.pt-score-area { margin-left:auto; text-align:right; }
+.pt-hours-big { font-size:26px; font-weight:900; line-height:1; }
+.pt-hours-label { font-size:11px; color:rgba(255,255,255,0.6); font-weight:700; }
+.pt-bar-wrap { margin-bottom:10px; }
+.pt-bar-bg { width:100%; height:10px; background:rgba(255,255,255,0.1); border-radius:5px; overflow:hidden; }
+.pt-bar-fill { height:100%; border-radius:5px; transition:width .4s ease; }
+.pt-stats-row { display:flex; gap:16px; flex-wrap:wrap; }
+.pt-stat { font-size:11px; color:rgba(255,255,255,0.65); font-weight:700; }
+.pt-stat b { color:#fff; }
+.pt-warning { font-size:12px; font-weight:800; margin-top:8px; padding:6px 10px; border-radius:8px; }
+.pt-warning.over { background:rgba(227,30,36,0.2); color:#ff9090; }
+.pt-warning.within { background:rgba(76,175,80,0.15); color:#90ee90; }
+.pt-warning.unset { background:rgba(255,255,255,0.08); color:rgba(255,255,255,0.5); }
+
+/* SECTION HEADER */
+.section-hdr { font-size:12px; font-weight:900; color:rgba(255,255,255,0.6); text-transform:uppercase; letter-spacing:.8px; margin-bottom:10px; margin-top:4px; }
+
+@media(max-width:600px) {
+  .stats-row { flex-wrap:wrap; }
+  .cr-stats { padding-left:14px; }
+}
+</style>
+</head>
+<body>
+
+<div id="login-screen">
+  <div class="login-box">
+    <div class="login-logo">MINI MONST★RS</div>
+    <div class="login-sub">Travel Tracking System</div>
+    <label>Email</label>
+    <input type="email" id="em" placeholder="admin@minimonstars.net" autocomplete="email">
+    <label>Password</label>
+    <input type="password" id="pw" placeholder="••••••••" autocomplete="current-password">
+    <button class="login-btn" id="login-btn">Sign in</button>
+    <div class="login-err" id="login-err"></div>
+  </div>
+</div>
+
+<div id="app">
+  <div class="hdr">
+    <div class="hdr-logo">MINI MONST<span>★</span>RS</div>
+    <div style="font-size:12px;color:rgba(255,255,255,0.6);font-weight:700;">Travel Tracker</div>
+    <div class="hdr-space"></div>
+    <span class="hdr-updated" id="last-updated"></span>
+    <button class="hdr-refresh" id="refresh-btn">↻</button>
+    <button class="hdr-signout" id="signout-btn">Sign out</button>
+  </div>
+
+  <div class="nav">
+    <button class="nav-tab active" data-tab="overview">Overview</button>
+    <button class="nav-tab" data-tab="payroll">Payroll</button>
+    <button class="nav-tab" data-tab="flags">Flags</button>
+    <button class="nav-tab" data-tab="trips">Trip Log</button>
+    <button class="nav-tab" data-tab="pt-hours">PT Hours</button>
+    <button class="nav-tab" data-tab="settings">Coach Settings</button>
+  </div>
+
+  <div class="main">
+    <!-- PERIOD + SETTINGS -->
+    <div class="period-bar">
+      <span class="period-label">Period:</span>
+      <button class="period-btn active" data-period="fortnight">Current Fortnight</button>
+      <button class="period-btn" data-period="prev-fortnight">Previous Fortnight</button>
+      <button class="period-btn" data-period="month">This Month</button>
+      <button class="period-btn" data-period="custom">Custom</button>
+      <div class="period-inputs" id="custom-dates" style="display:none">
+        <input type="date" id="date-from">
+        <span style="color:#fff;font-weight:700">→</span>
+        <input type="date" id="date-to">
+        <button class="period-btn active" onclick="loadData()">Apply</button>
+      </div>
+    </div>
+
+    <div class="settings-bar">
+      <label>Free threshold:</label>
+      <input type="number" id="km-threshold" value="15" min="0" step="1">
+      <label>km/day &nbsp;|&nbsp; Rate: $</label>
+      <input type="number" id="km-rate" value="0.98" min="0" step="0.01">
+      <label>/km &nbsp;|&nbsp; State:</label>
+      <select id="state-filter">
+        <option value="">All states</option>
+        <option value="VIC">VIC</option>
+        <option value="NSW">NSW</option>
+        <option value="QLD">QLD</option>
+        <option value="WA">WA</option>
+        <option value="SA">SA</option>
+      </select>
+      <label>Flag long trips &gt;</label>
+      <input type="number" id="flag-km" value="40" min="1" step="5">
+      <label>km</label>
+    </div>
+
+    <div class="stats-row" id="stats-row">
+      <div class="stat-pill"><div class="stat-pill-label">Total KM</div><div class="stat-pill-val" id="s-km">—</div></div>
+      <div class="stat-pill"><div class="stat-pill-label">Total Reimbursement</div><div class="stat-pill-val" id="s-pay">—</div></div>
+      <div class="stat-pill"><div class="stat-pill-label">Coaches</div><div class="stat-pill-val" id="s-coaches">—</div></div>
+      <div class="stat-pill"><div class="stat-pill-label">Sessions</div><div class="stat-pill-val" id="s-sessions">—</div></div>
+      <div class="stat-pill" style="cursor:pointer" onclick="window.goToFlags()" title="View flags"><div class="stat-pill-label">Flags</div><div class="stat-pill-val" id="s-flags">—</div></div>
+    </div>
+
+    <!-- TABS -->
+    <div id="tab-overview"><div class="loading"><div class="spinner"></div><p>Loading travel data…</p></div></div>
+    <div id="tab-payroll" style="display:none"></div>
+    <div id="tab-flags" style="display:none"></div>
+    <div id="tab-trips" style="display:none"></div>
+    <div id="tab-pt-hours" style="display:none"></div>
+    <div id="tab-settings" style="display:none"></div>
+  </div>
+</div>
+
+<script type="module">
+import { initializeApp } from 'https://www.gstatic.com/firebasejs/10.12.5/firebase-app.js';
+import { getAuth, signInWithEmailAndPassword, signOut, onAuthStateChanged } from 'https://www.gstatic.com/firebasejs/10.12.5/firebase-auth.js';
+import { getFirestore, collection, getDocs, query, where } from 'https://www.gstatic.com/firebasejs/10.12.5/firebase-firestore.js';
+
+const MAPS_KEY = 'AIzaSyD_MpSn0m96wTjCLUvXBdOLJBF-lPCQ5SE';
+const EXCLUDED = ['joel foulds','shane foulds','troy wilson','rhiannon thompson','katie thomas','viki hamawi'];
+
+const app = initializeApp({
+  apiKey:"AIzaSyCpLhBjI2qAwQ6zDWdLXRcR2WqVbOG3kug",
+  authDomain:"mini-monstars-au.firebaseapp.com",
+  projectId:"mini-monstars-au",
+  storageBucket:"mini-monstars-au.appspot.com",
+  messagingSenderId:"1020303504267",
+  appId:"1:1020303504267:web:9d7417231c76b0f351b58e"
+});
+const auth = getAuth(app);
+const db   = getFirestore(app);
+
+// ── PERIOD HELPERS ────────────────────────────────────────────────────────────
+// Fortnights run Thu→Wed, pay day Thursday
+// Current fortnight: Apr 3–16, previous: Mar 20–Apr 2, etc.
+function getFortnightBounds(offset = 0) {
+  // Anchor to the START of the current fortnight: Apr 3 2026 (Thursday)
+  const anchorStart = new Date('2026-04-03T00:00:00');
+  const start = new Date(anchorStart);
+  start.setDate(start.getDate() + offset * 14);
+  start.setHours(0,0,0,0);
+  const end = new Date(start);
+  end.setDate(end.getDate() + 13);
+  end.setHours(23,59,59,999);
+  return { start, end };
+}
+
+function getPeriodBounds(period) {
+  if (period === 'fortnight')      return getFortnightBounds(0);
+  if (period === 'prev-fortnight') return getFortnightBounds(-1);
+  if (period === 'month') {
+    const n = new Date();
+    return { start: new Date(n.getFullYear(), n.getMonth(), 1, 0,0,0,0), end: new Date(n.getFullYear(), n.getMonth()+1, 0, 23,59,59,999) };
+  }
+  if (period === 'custom') {
+    const from = document.getElementById('date-from').value;
+    const to   = document.getElementById('date-to').value;
+    if (from && to) return { start: new Date(from+'T00:00:00'), end: new Date(to+'T23:59:59') };
+  }
+  return getFortnightBounds(0);
+}
+
+function toDate(v) {
+  if (!v) return null;
+  if (v.toDate) return v.toDate();
+  if (v.seconds) return new Date(v.seconds*1000);
+  return new Date(v);
+}
+
+function fmtDate(d) { return d ? d.toLocaleDateString('en-AU',{weekday:'short',day:'numeric',month:'short'}) : '—'; }
+function fmtTime(d) { return d ? d.toLocaleTimeString('en-AU',{hour:'2-digit',minute:'2-digit'}) : ''; }
+function initials(fn,ln) { return ((fn||'').charAt(0)+(ln||'').charAt(0)).toUpperCase(); }
+function avatarColor(name) {
+  const cols=['#E31E24','#6BAED6','#8DC63F','#F7941D','#9b59b6','#1abc9c','#e67e22','#e91e63'];
+  let h=0; for(const c of name) h=(h*31+c.charCodeAt(0))&0x7fffffff;
+  return cols[h%cols.length];
+}
+
+// ── DISTANCE CACHE (persisted to localStorage) ───────────────────────────────
+const CACHE_KEY = 'mm_dist_cache_v1';
+let distCache = {};
+try {
+  const saved = localStorage.getItem(CACHE_KEY);
+  if (saved) distCache = JSON.parse(saved);
+} catch(e) { distCache = {}; }
+
+function saveDistCache() {
+  try { localStorage.setItem(CACHE_KEY, JSON.stringify(distCache)); } catch(e) {}
+}
+
+let distanceService = null;
+
+function getDistanceService() {
+  if (!distanceService && window.google?.maps) {
+    distanceService = new google.maps.DistanceMatrixService();
+  }
+  return distanceService;
+}
+
+function getRoadKm(originAddr, destAddr) {
+  return new Promise((resolve) => {
+    if (!originAddr || !destAddr) { resolve(null); return; }
+    const key = `${originAddr}||${destAddr}`;
+    if (distCache[key] !== undefined) { resolve(distCache[key]); return; }
+
+    const svc = getDistanceService();
+    if (!svc) { resolve(null); return; }
+
+    svc.getDistanceMatrix({
+      origins: [originAddr],
+      destinations: [destAddr],
+      travelMode: google.maps.TravelMode.DRIVING,
+      unitSystem: google.maps.UnitSystem.METRIC,
+    }, (response, status) => {
+      if (status === 'OK' && response.rows[0].elements[0].status === 'OK') {
+        const km = Math.round(response.rows[0].elements[0].distance.value / 100) / 10;
+        distCache[key] = km;
+        saveDistCache();
+        resolve(km);
+      } else {
+        distCache[key] = null;
+        saveDistCache();
+        resolve(null);
+      }
+    });
+  });
+}
+
+// Straight line fallback using lat/lng
+function straightLineKm(lat1, lng1, lat2, lng2) {
+  const R = 6371;
+  const dLat = (lat2-lat1) * Math.PI/180;
+  const dLng = (lng2-lng1) * Math.PI/180;
+  const a = Math.sin(dLat/2)**2 + Math.cos(lat1*Math.PI/180)*Math.cos(lat2*Math.PI/180)*Math.sin(dLng/2)**2;
+  return R * 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1-a)) * 1.3;
+}
+
+// ── RAW DATA ──────────────────────────────────────────────────────────────────
+let RAW = null;
+let COMPUTED = null;
+let autoTimer = null;
+let currentPeriod = 'fortnight';
+
+async function loadRaw() {
+  const [uSnap, eSnap, cSnap] = await Promise.all([
+    getDocs(collection(db,'users')),
+    getDocs(collection(db,'events')),
+    getDocs(collection(db,'education-centers'))
+  ]);
+
+  const users = {};
+  uSnap.forEach(d => { users[d.id] = {id:d.id,...d.data()}; });
+
+  const events = [];
+  eSnap.forEach(d => events.push({id:d.id,...d.data()}));
+
+  const centres = {};
+  cSnap.forEach(d => { centres[d.id] = {id:d.id,...d.data()}; });
+
+  RAW = { users, events, centres };
+}
+
+// ── TRIP ENGINE ───────────────────────────────────────────────────────────────
+function normaliseActivity(a) {
+  if (!a) return null;
+  const l = a.toLowerCase();
+  if (l.includes('sport')) return 'Sports';
+  if (l.includes('music')) return 'Music';
+  if (l.includes('gymnastic')) return 'Gymnastics';
+  if (l.includes('yoga')) return 'Yoga';
+  if (l.includes('sensory')) return 'Sensory';
+  return null;
+}
+
+async function computeTrips(period) {
+  const { start, end } = getPeriodBounds(period);
+  const { users, events, centres } = RAW;
+  const threshold = parseFloat(document.getElementById('km-threshold').value) || 5;
+  const rate      = parseFloat(document.getElementById('km-rate').value) || 0.80;
+  const flagKm    = parseFloat(document.getElementById('flag-km').value) || 40;
+  const stateFilter = document.getElementById('state-filter').value;
+
+  // Active coaches only
+  const coaches = Object.values(users).filter(u => {
+    if (u.role !== 'coach' || u.status !== 'Active') return false;
+    const name = `${(u.firstName||'').trim()} ${(u.lastName||'').trim()}`.toLowerCase();
+    if (EXCLUDED.includes(name)) return false;
+    if (stateFilter) {
+      const s = u.city || (u.address?.match(/\b(VIC|NSW|QLD|WA|SA|TAS|ACT|NT)\b/)||[])[1];
+      if (s !== stateFilter) return false;
+    }
+    return true;
+  });
+
+  // Filter events to period, attended only
+  const periodEvents = events.filter(e => {
+    if (e.sessionStatus !== 'Attended') return false;
+    const d = toDate(e.start);
+    return d && d >= start && d <= end;
+  });
+
+  const coachResults = [];
+
+  for (const coach of coaches) {
+    const cid = coach.id;
+    const fullName = `${(coach.firstName||'').trim()} ${(coach.lastName||'').trim()}`;
+    const homeAddr = coach.address || null;
+    const homeGeo  = coach.addressGeo || null;
+
+    // Get this coach's events
+    const myEvents = periodEvents
+      .filter(e => (e.coaches||[]).some(c => c.value === cid))
+      .map(e => {
+        const centre = centres[e.educationCenter] || {};
+        return {
+          date: toDate(e.start),
+          end:  toDate(e.end),
+          centreName: centre.name || e.title || 'Unknown Centre',
+          centreAddr: centre.address || null,
+          centreGeo:  centre.addressGeo || null,
+          eventId: e.id,
+          activity: e.activity || ''
+        };
+      })
+      .filter(e => e.date)
+      .sort((a,b) => a.date - b.date);
+
+    if (!myEvents.length) continue;
+
+    // Group by date
+    const byDay = {};
+    myEvents.forEach(e => {
+      const dayKey = e.date.toLocaleDateString('en-AU');
+      (byDay[dayKey] = byDay[dayKey]||[]).push(e);
+    });
+
+    const trips = [];
+    let totalKm = 0;
+    const flags = [];
+
+    for (const [dayKey, dayEvs] of Object.entries(byDay)) {
+      dayEvs.sort((a,b) => a.date - b.date);
+
+      for (let i = 0; i < dayEvs.length; i++) {
+        const ev = dayEvs[i];
+        let origin, originAddr, originGeo, tripType;
+
+        if (i === 0) {
+          // First session: Home → Centre
+          origin    = 'Home';
+          originAddr = homeAddr;
+          originGeo  = homeGeo;
+          tripType  = 'Home → Centre';
+        } else {
+          // Check time gap
+          const prev = dayEvs[i-1];
+          const gapMins = (ev.date - prev.end) / 60000;
+          if (gapMins <= 60) {
+            // Within 1 hour: Centre → Centre
+            origin    = prev.centreName;
+            originAddr = prev.centreAddr;
+            originGeo  = prev.centreGeo;
+            tripType  = 'Centre → Centre';
+          } else {
+            // Gap > 1 hour: reset, Home → Centre
+            origin    = 'Home';
+            originAddr = homeAddr;
+            originGeo  = homeGeo;
+            tripType  = 'Home → Centre';
+          }
+        }
+
+        // Calculate distance
+        let km = null;
+        if (originAddr && ev.centreAddr) {
+          km = await getRoadKm(originAddr, ev.centreAddr);
+        }
+        // Fallback to straight line
+        if (km === null && originGeo && ev.centreGeo) {
+          km = straightLineKm(originGeo.lat, originGeo.lng, ev.centreGeo.lat, ev.centreGeo.lng);
+        }
+        if (km !== null) km = Math.round(km * 10) / 10;
+
+        // Flags
+        const tripFlags = [];
+        if (km !== null && km > flagKm) {
+          tripFlags.push('LONG');
+          if (!flags.find(f=>f.type==='LONG_DRIVE')) {
+            flags.push({ type:'LONG_DRIVE', msg:`Long trip: ${km}km to ${ev.centreName} on ${dayKey}`, km, day:dayKey });
+          }
+        }
+
+        trips.push({
+          day: dayKey,
+          date: ev.date,
+          type: tripType,
+          origin,
+          dest: ev.centreName,
+          destAddr: ev.centreAddr,
+          km,
+          startTime: fmtTime(ev.date),
+          endTime: fmtTime(ev.end),
+          activity: ev.activity,
+          flags: tripFlags
+        });
+
+        if (km !== null) totalKm += km;
+      }
+    }
+
+    totalKm = Math.round(totalKm * 10) / 10;
+
+    // Detect backtracking (East→West→East pattern using lng)
+    const dayLngs = {};
+    trips.forEach(t => {
+      const geo = centres[Object.values(RAW.centres).find(c=>c.name===t.dest)?.id]?.addressGeo;
+      if (geo) (dayLngs[t.day]=dayLngs[t.day]||[]).push(geo.lng);
+    });
+    for (const [day, lngs] of Object.entries(dayLngs)) {
+      if (lngs.length >= 3) {
+        let backtracks = 0;
+        for (let i=1; i<lngs.length-1; i++) {
+          if ((lngs[i]<lngs[i-1] && lngs[i]<lngs[i+1]) || (lngs[i]>lngs[i-1] && lngs[i]>lngs[i+1])) backtracks++;
+        }
+        if (backtracks > 0) flags.push({ type:'BACKTRACK', msg:`Possible backtracking detected on ${day}`, day });
+      }
+    }
+
+    // Coach type & contracted hours from settings
+    const coachType = getCoachType(cid);
+    const contractedHours = getCoachContractedHours(cid);
+
+    // Calculate total session hours from events
+    let totalSessionMins = 0;
+    for (const ev of myEvents) {
+      if (ev.end && ev.date) totalSessionMins += (ev.end - ev.date) / 60000;
+    }
+
+    // Calculate total travel time (minutes) for PT coaches
+    // Using avg speed of 60km/h to convert km to time
+    let totalTravelMins = 0;
+    for (const trip of trips) {
+      if (trip.km) totalTravelMins += (trip.km / 60) * 60; // km ÷ 60kmh × 60mins
+    }
+    // Return home travel time (last trip of each day, home distance)
+    let returnHomeMins = 0;
+    for (const [dayKey, dayEvs] of Object.entries(byDay)) {
+      const lastEv = dayEvs[dayEvs.length-1];
+      if (lastEv?.centreGeo && homeGeo) {
+        const returnKm = straightLineKm(lastEv.centreGeo.lat, lastEv.centreGeo.lng, homeGeo.lat, homeGeo.lng) * 1.0;
+        returnHomeMins += (returnKm / 60) * 60;
+      }
+    }
+
+    const totalFortnightMins = totalSessionMins + totalTravelMins + returnHomeMins;
+    const totalFortnightHrs = Math.round(totalFortnightMins / 60 * 10) / 10;
+    const overflowHrs = contractedHours > 0 ? Math.max(0, totalFortnightHrs - contractedHours) : 0;
+    // overflowKm kept for display only — NOT used in payment calc
+    const overflowKm = overflowHrs > 0 ? Math.round(overflowHrs * 60) : 0;
+
+    // Payroll calc — different for PT vs Casual
+    let payableKm, reimbursement;
+    if (coachType === 'pt' && contractedHours > 0) {
+      if (overflowHrs > 0) {
+        // PT over contract: reimburse actual KM driven, minus daily threshold
+        payableKm = Math.max(0, totalKm - (threshold * Object.keys(byDay).length));
+        reimbursement = Math.round(payableKm * rate * 100) / 100;
+      } else {
+        // PT within contract: no reimbursement
+        payableKm = 0;
+        reimbursement = 0;
+      }
+    } else {
+      // Casual: standard threshold per day
+      payableKm = Math.max(0, totalKm - (threshold * Object.keys(byDay).length));
+      reimbursement = Math.round(payableKm * rate * 100) / 100;
+    }
+
+    const state = coach.city || (coach.address?.match(/\b(VIC|NSW|QLD|WA|SA|TAS|ACT|NT)\b/)||[])[1] || 'Unknown';
+
+    coachResults.push({
+      id: cid,
+      firstName: coach.firstName||'',
+      lastName: coach.lastName||'',
+      fullName,
+      state,
+      profilePic: coach.profilePic||null,
+      homeAddr,
+      totalKm,
+      totalSessions: myEvents.length,
+      totalDays: Object.keys(byDay).length,
+      payableKm: Math.round(payableKm*10)/10,
+      reimbursement,
+      coachType,
+      contractedHours,
+      totalFortnightHrs: coachType==='pt'?totalFortnightHrs:null,
+      overflowHrs: coachType==='pt'?overflowHrs:null,
+      overflowKm: coachType==='pt'?overflowKm:null,
+      trips,
+      flags,
+      byDay
+    });
+  }
+
+  coachResults.sort((a,b) => b.totalKm - a.totalKm);
+
+  // ── CLOSER COACH DETECTION ───────────────────────────────────────────────────
+  // Build a schedule lookup: coachId → array of {start, end, centreName, program}
+  const scheduleByCoach = {};
+  for (const e of events) {
+    if (e.sessionStatus !== 'Attended') continue;
+    const eStart = toDate(e.start);
+    const eEnd   = toDate(e.end);
+    if (!eStart) continue;
+    for (const c of (e.coaches||[])) {
+      if (!scheduleByCoach[c.value]) scheduleByCoach[c.value] = [];
+      scheduleByCoach[c.value].push({
+        start: eStart, end: eEnd,
+        centreName: RAW.centres[e.educationCenter]?.name || e.title || 'Unknown',
+        centreGeo: RAW.centres[e.educationCenter]?.addressGeo || null,
+        program: normaliseActivity(e.activity) || e.activity || ''
+      });
+    }
+  }
+
+  // Build all active coaches list (including those with no sessions)
+  const allActiveCoaches = Object.values(RAW.users).filter(u => {
+    if (u.role !== 'coach' || (u.status !== 'Active' && u.status)) return false;
+    const name = `${(u.firstName||'').trim()} ${(u.lastName||'').trim()}`.toLowerCase();
+    return !['joel foulds','shane foulds','troy wilson','rhiannon thompson','katie thomas','viki hamawi'].includes(name);
+  });
+
+  // Helper: is coach free at a given time (±30 min buffer)?
+  function isCoachFree(coachId, targetStart, targetEnd) {
+    const schedule = scheduleByCoach[coachId] || [];
+    const buffer = 30 * 60 * 1000; // 30 mins in ms
+    for (const s of schedule) {
+      const sStart = new Date(s.start.getTime() - buffer);
+      const sEnd   = new Date(s.end ? s.end.getTime() + buffer : s.start.getTime() + 90*60000 + buffer);
+      // Check overlap
+      if (targetStart < sEnd && targetEnd > sStart) return false;
+    }
+    return true;
+  }
+
+  // Helper: get coach programs (categories + events)
+  function getCoachPrograms(coachId) {
+    const user = RAW.users[coachId];
+    if (!user) return [];
+    const progs = new Set((user.categories||[]).map(p=>p.trim()).filter(Boolean));
+    for (const e of events) {
+      if ((e.coaches||[]).some(c=>c.value===coachId)) {
+        const n = normaliseActivity(e.activity);
+        if (n) progs.add(n);
+      }
+    }
+    return [...progs];
+  }
+
+  for (const cr of coachResults) {
+    for (const trip of cr.trips) {
+      if (!trip.destAddr) continue;
+      const destCentre = Object.values(RAW.centres).find(c=>c.name===trip.dest);
+      if (!destCentre?.addressGeo) continue;
+
+      const myGeo = RAW.users[cr.id]?.addressGeo;
+      if (!myGeo) continue;
+      const myDist = straightLineKm(myGeo.lat, myGeo.lng, destCentre.addressGeo.lat, destCentre.addressGeo.lng);
+
+      // Centre programs needed
+      const centreProgramsNeeded = destCentre.categories || [];
+
+      // Trip time window
+      const tripStart = trip.date;
+      const tripEnd   = trip.date ? new Date(trip.date.getTime() + 90*60000) : null;
+
+      for (const other of allActiveCoaches) {
+        if (other.id === cr.id) continue;
+        const otherGeo = other.addressGeo;
+        if (!otherGeo) continue;
+
+        const otherDist = straightLineKm(otherGeo.lat, otherGeo.lng, destCentre.addressGeo.lat, destCentre.addressGeo.lng);
+        if (otherDist >= myDist * 0.6) continue; // not significantly closer (must be 40% closer)
+
+        const existing = cr.flags.find(f=>f.type==='CLOSER'&&f.centre===trip.dest&&f.closerId===other.id);
+        if (existing) continue;
+
+        const otherPrograms = getCoachPrograms(other.id);
+        const programMatch = centreProgramsNeeded.length === 0 || centreProgramsNeeded.some(p =>
+          otherPrograms.some(op => op.toLowerCase() === p.toLowerCase())
+        );
+        const matchingProgs = centreProgramsNeeded.filter(p =>
+          otherPrograms.some(op => op.toLowerCase() === p.toLowerCase())
+        );
+
+        // Check if closer coach is free at the trip time
+        const freeAtTime = tripStart && tripEnd ? isCoachFree(other.id, tripStart, tripEnd) : null;
+
+        // If not free, find who could cover their conflicting session
+        let coverSuggestion = null;
+        if (freeAtTime === false && tripStart && tripEnd) {
+          const otherSchedule = scheduleByCoach[other.id] || [];
+          const buffer = 30 * 60 * 1000;
+          const conflictSession = otherSchedule.find(s => {
+            const sStart = new Date(s.start.getTime() - buffer);
+            const sEnd   = new Date(s.end ? s.end.getTime() + buffer : s.start.getTime() + 90*60000 + buffer);
+            return tripStart < sEnd && tripEnd > sStart;
+          });
+
+          if (conflictSession) {
+            // Find someone who can cover this conflict
+            for (const coverCoach of allActiveCoaches) {
+              if (coverCoach.id === cr.id || coverCoach.id === other.id) continue;
+              const coverGeo = coverCoach.addressGeo;
+              if (!coverGeo) continue;
+              const coverPrograms = getCoachPrograms(coverCoach.id);
+              const canDeliver = !conflictSession.program || coverPrograms.some(p =>
+                p.toLowerCase() === (normaliseActivity(conflictSession.program)||conflictSession.program||'').toLowerCase()
+              );
+              if (!canDeliver) continue;
+              const coverFree = isCoachFree(coverCoach.id, conflictSession.start,
+                conflictSession.end || new Date(conflictSession.start.getTime() + 90*60000));
+              if (coverFree) {
+                const coverName = `${(coverCoach.firstName||'').trim()} ${(coverCoach.lastName||'').trim()}`;
+                coverSuggestion = {
+                  coverName,
+                  coverId: coverCoach.id,
+                  conflictCentre: conflictSession.centreName,
+                  conflictProgram: conflictSession.program
+                };
+                break;
+              }
+            }
+          }
+        }
+
+        const otherName = `${(other.firstName||'').trim()} ${(other.lastName||'').trim()}`;
+        const otherState = other.city || (other.address?.match(/\b(VIC|NSW|QLD|WA|SA|TAS|ACT|NT)\b/)||[])[1] || '?';
+
+        cr.flags.push({
+          type: 'CLOSER',
+          msg: `${otherName} is closer to ${trip.dest} (${Math.round(otherDist)}km vs ${Math.round(myDist)}km)`,
+          centre: trip.dest,
+          centreProgramsNeeded,
+          closer: otherName,
+          closerId: other.id,
+          closerState: otherState,
+          closerPrograms: otherPrograms,
+          programMatch,
+          matchingProgs,
+          freeAtTime,
+          coverSuggestion,
+          tripDate: trip.day
+        });
+        break; // one best closer coach per trip
+      }
+    }
+  }
+
+  COMPUTED = coachResults;
+  return coachResults;
+}
+
+// ── RENDER ROW COLORS ─────────────────────────────────────────────────────────
+function rowColor(rank, total) {
+  const t = rank/total;
+  if (t < 0.2) return '#c62828';
+  if (t < 0.4) return '#e65100';
+  if (t < 0.6) return '#f9a825';
+  if (t < 0.8) return '#558b2f';
+  return '#2e7d32';
+}
+
+// ── RENDER OVERVIEW ───────────────────────────────────────────────────────────
+function renderOverview(coaches) {
+  const el = document.getElementById('tab-overview');
+  if (!coaches.length) { el.innerHTML='<div class="empty">No data for this period</div>'; return; }
+
+  const lb = document.createElement('div');
+  lb.className = 'lb';
+
+  coaches.forEach((c, i) => {
+    const rank = i+1;
+    const bg = rowColor(rank, coaches.length);
+    const color = avatarColor(c.fullName);
+    const inits = initials(c.firstName, c.lastName);
+    const flagBadges = [
+      ...new Set(c.flags.map(f=>f.type))
+    ].map(t => {
+      if (t==='LONG_DRIVE') return '<span class="flag-badge flag-long">⚠ Long trip</span>';
+      if (t==='BACKTRACK')  return '<span class="flag-badge flag-back">↩ Backtrack</span>';
+      if (t==='CLOSER')     return '<span class="flag-badge flag-closer">📍 Closer coach</span>';
+      return '';
+    }).join('');
+
+    const row = document.createElement('div');
+    row.className = 'coach-row';
+    row.style.background = bg;
+
+    const photoHtml = c.profilePic
+      ? `<img class="cr-img" src="${c.profilePic}" onerror="this.style.display='none';this.nextSibling.style.display='flex'" alt="${c.fullName}"><div class="cr-avatar" style="display:none;background:${color}33;color:${color}">${inits}</div>`
+      : `<div class="cr-avatar" style="background:${color}33;color:${color}">${inits}</div>`;
+
+    row.innerHTML = `
+      <div class="coach-row-top">
+        <div class="cr-rank">${rank}</div>
+        ${photoHtml}
+        <div class="cr-info">
+          <div class="cr-name">${c.fullName}${flagBadges}</div>
+          <div class="cr-sub">${c.state} · ${c.coachType==='pt'?'<span class="type-pt">Part Time</span>':'<span class="type-casual">Casual</span>'} · ${c.totalSessions} sessions · ${c.totalDays} days${c.coachType==='pt'&&c.overflowHrs>0?' · <span style="color:#ff9090">'+c.overflowHrs.toFixed(1)+'h over contract</span>':''}</div>
+        </div>
+        <div class="cr-score">
+          <div class="cr-km">${c.totalKm}km</div>
+          <div class="cr-pay">$${c.reimbursement.toFixed(2)}</div>
+        </div>
+        <div class="cr-chevron">▼</div>
+      </div>
+      <div class="cr-stats">
+        <span class="cr-stat">Payable KM <b>${c.payableKm}km</b></span>
+        <span class="cr-stat">Sessions <b>${c.totalSessions}</b></span>
+        <span class="cr-stat">Days worked <b>${c.totalDays}</b></span>
+        <span class="cr-stat">KM/session <b>${c.totalSessions?Math.round(c.totalKm/c.totalSessions*10)/10:0}km</b></span>
+        <span class="cr-stat">Flags <b>${c.flags.length}</b></span>
+      </div>
+      <div class="cr-trips" id="trips-${c.id}"></div>
+    `;
+
+    // Build trips on expand
+    row.querySelector('.coach-row-top').addEventListener('click', () => {
+      const open = row.classList.toggle('open');
+      if (open) {
+        const tripEl = document.getElementById(`trips-${c.id}`);
+        if (!tripEl.innerHTML) {
+          // Group by day
+          const days = [...new Set(c.trips.map(t=>t.day))];
+          let html = '';
+          days.forEach(day => {
+            const dayTrips = c.trips.filter(t=>t.day===day);
+            const dayKm = dayTrips.reduce((s,t)=>s+(t.km||0),0);
+            html += `<div class="trip-day">
+              <div class="trip-day-label">${day} — ${Math.round(dayKm*10)/10}km</div>
+              ${dayTrips.map(t => `
+                <div class="trip-row">
+                  <span class="trip-type ${t.type.includes('Home')?'trip-home':'trip-c2c'}">${t.type.includes('Home')?'H→C':'C→C'}</span>
+                  <span class="trip-time">${t.startTime}</span>
+                  <span class="trip-route">${t.origin} → ${t.dest}</span>
+                  <span class="trip-km">${t.km!==null?t.km+'km':'~'}</span>
+                  <span class="trip-flag">${t.flags.includes('LONG')?'🔴':''}</span>
+                </div>`).join('')}
+            </div>`;
+          });
+          tripEl.innerHTML = html;
+        }
+      }
+    });
+
+    lb.appendChild(row);
+  });
+
+  el.innerHTML = '';
+  el.appendChild(lb);
+}
+
+// ── RENDER PAYROLL ────────────────────────────────────────────────────────────
+function renderPayroll(coaches, period) {
+  const bounds = getPeriodBounds(period);
+  const el = document.getElementById('tab-payroll');
+  const threshold = parseFloat(document.getElementById('km-threshold').value)||5;
+  const rate = parseFloat(document.getElementById('km-rate').value)||0.80;
+
+  let html = `<div style="margin-bottom:12px;font-size:12px;color:rgba(255,255,255,0.7);font-weight:700">
+    Period: ${fmtDate(bounds.start)} → ${fmtDate(bounds.end)} &nbsp;|&nbsp;
+    Threshold: ${threshold}km/day &nbsp;|&nbsp; Rate: $${rate}/km
+  </div>
+  <div class="table-wrap">
+  <table class="payroll-table">
+    <thead><tr>
+      <th>Coach</th><th>State</th><th>Days</th><th>Sessions</th>
+      <th>Total KM</th><th>Hours (PT)</th><th>Overflow (PT)</th><th>Payable KM</th><th>Reimbursement</th>
+    </tr></thead>
+    <tbody>`;
+
+  let totKm=0, totPayable=0, totPay=0, totSess=0;
+  coaches.forEach(c => {
+    const thresh = threshold * c.totalDays;
+    const typeLabel = c.coachType==='pt'
+      ? `<span class="type-pt">PT</span>`
+      : `<span class="type-casual">Casual</span>`;
+    const hoursInfo = c.coachType==='pt'
+      ? `${c.totalFortnightHrs}h / ${c.contractedHours}h`
+      : '—';
+    const overflowInfo = c.coachType==='pt'
+      ? (c.overflowHrs>0 ? `<span style="color:var(--red)">${c.overflowHrs.toFixed(1)}h over</span>` : '<span style="color:#8DC63F">Within</span>')
+      : '—';
+    html += `<tr>
+      <td>${c.fullName} ${typeLabel}</td>
+      <td>${c.state}</td>
+      <td>${c.totalDays}</td>
+      <td>${c.totalSessions}</td>
+      <td>${c.totalKm}km</td>
+      <td style="font-size:11px">${hoursInfo}</td>
+      <td style="font-size:11px">${overflowInfo}</td>
+      <td>${c.payableKm}km</td>
+      <td style="color:var(--yellow)">$${c.reimbursement.toFixed(2)}</td>
+    </tr>`;
+    totKm+=c.totalKm; totPayable+=c.payableKm; totPay+=c.reimbursement; totSess+=c.totalSessions;
+  });
+
+  html += `</tbody><tfoot><tr class="total-row">
+    <td colspan="3"><b>TOTAL (${coaches.length} coaches)</b></td>
+    <td>${totSess}</td>
+    <td>${Math.round(totKm*10)/10}km</td>
+    <td></td><td></td>
+    <td>${Math.round(totPayable*10)/10}km</td>
+    <td>$${totPay.toFixed(2)}</td>
+  </tr></tfoot></table></div>`;
+
+  el.innerHTML = html;
+}
+
+// ── RENDER FLAGS ──────────────────────────────────────────────────────────────
+function renderFlags(coaches) {
+  const el = document.getElementById('tab-flags');
+  const allFlags = coaches.flatMap(c => c.flags.map(f => ({...f, coachName:c.fullName, state:c.state, coachPrograms:c.programs||[]})));
+  const longDrives  = allFlags.filter(f=>f.type==='LONG_DRIVE');
+  const backtracks  = allFlags.filter(f=>f.type==='BACKTRACK');
+  const closerFlags = allFlags.filter(f=>f.type==='CLOSER');
+
+  if (!allFlags.length) { el.innerHTML='<div class="empty">✓ No flags this period</div>'; return; }
+
+  const flagKm = document.getElementById('flag-km').value;
+  let html = '';
+
+  // ── SUMMARY PILLS ──
+  html += `<div style="display:flex;gap:8px;flex-wrap:wrap;margin-bottom:18px">`;
+  if (longDrives.length)  html += `<div class="stat-pill" style="box-shadow:0 3px 0 #a00;background:#E31E24;cursor:pointer;" onclick="window.scrollToFlag('long')"><div class="stat-pill-label" style="color:rgba(255,255,255,0.8)">Long Drives</div><div class="stat-pill-val" style="color:#fff">${longDrives.length}</div></div>`;
+  if (backtracks.length)  html += `<div class="stat-pill" style="box-shadow:0 3px 0 #6a1b9a;background:#9C27B0;cursor:pointer;" onclick="window.scrollToFlag('back')"><div class="stat-pill-label" style="color:rgba(255,255,255,0.8)">Backtracking</div><div class="stat-pill-val" style="color:#fff">${backtracks.length}</div></div>`;
+  if (closerFlags.length) html += `<div class="stat-pill" style="box-shadow:0 3px 0 #e65100;background:#F7941D;cursor:pointer;" onclick="window.scrollToFlag('closer')"><div class="stat-pill-label" style="color:rgba(255,255,255,0.8)">Closer Coach</div><div class="stat-pill-val" style="color:#fff">${closerFlags.length}</div></div>`;
+  if (!allFlags.length)   html += `<div class="stat-pill"><div class="stat-pill-label">Total Flags</div><div class="stat-pill-val">0</div></div>`;
+  html += `</div>`;
+
+  // ── LONG DRIVES ──
+  if (longDrives.length) {
+    html += `
+      <div id="flag-section-long" style="display:flex;align-items:center;gap:10px;margin-bottom:10px">
+        <div style="width:4px;height:20px;background:#E31E24;border-radius:2px"></div>
+        <div class="section-hdr" style="margin:0">Long Drives (&gt;${flagKm}km) — ${longDrives.length} flag${longDrives.length>1?'s':''}</div>
+      </div>
+      <div style="margin-bottom:20px">`;
+    longDrives.sort((a,b)=>b.km-a.km).forEach(f => {
+      html += `<div class="flag-card flag-red" style="margin-bottom:8px">
+        <div class="flag-title">
+          <span style="background:rgba(227,30,36,0.3);padding:3px 8px;border-radius:8px;font-size:11px">🔴 LONG DRIVE</span>
+          ${f.coachName}
+          <span style="font-size:11px;color:rgba(255,255,255,0.55);font-weight:600">${f.state}</span>
+          <span style="margin-left:auto;font-size:14px;font-weight:900;color:#ff8080">${f.km}km</span>
+        </div>
+        <div class="flag-desc">${f.msg}</div>
+        <div style="font-size:11px;color:rgba(255,255,255,0.45);margin-top:5px;font-weight:600">Consider reassigning this centre to a closer coach</div>
+      </div>`;
+    });
+    html += `</div>`;
+  }
+
+  // ── BACKTRACKING ──
+  if (backtracks.length) {
+    html += `
+      <div id="flag-section-back" style="display:flex;align-items:center;gap:10px;margin-bottom:10px">
+        <div style="width:4px;height:20px;background:#9C27B0;border-radius:2px"></div>
+        <div class="section-hdr" style="margin:0">Backtracking Detected — ${backtracks.length} flag${backtracks.length>1?'s':''}</div>
+      </div>
+      <div style="margin-bottom:20px">`;
+    backtracks.forEach(f => {
+      html += `<div class="flag-card flag-purple" style="margin-bottom:8px">
+        <div class="flag-title">
+          <span style="background:rgba(156,39,176,0.3);padding:3px 8px;border-radius:8px;font-size:11px">↩ BACKTRACK</span>
+          ${f.coachName}
+          <span style="font-size:11px;color:rgba(255,255,255,0.55);font-weight:600">${f.state}</span>
+        </div>
+        <div class="flag-desc">${f.msg}</div>
+        <div style="font-size:11px;color:rgba(255,255,255,0.45);margin-top:5px;font-weight:600">Review schedule order — routing east→west→east adds unnecessary KM</div>
+      </div>`;
+    });
+    html += `</div>`;
+  }
+
+  // ── CLOSER COACH ──
+  if (closerFlags.length) {
+    html += `
+      <div id="flag-section-closer" style="display:flex;align-items:center;gap:10px;margin-bottom:10px">
+        <div style="width:4px;height:20px;background:#F7941D;border-radius:2px"></div>
+        <div class="section-hdr" style="margin:0">Closer Coach Available — ${closerFlags.length} flag${closerFlags.length>1?'s':''}</div>
+      </div>
+      <div style="margin-bottom:20px">`;
+
+    closerFlags.forEach(f => {
+      const centreProgTagsHtml = (f.centreProgramsNeeded||[]).map(p =>
+        `<span style="font-size:10px;font-weight:800;padding:2px 7px;border-radius:8px;background:rgba(107,174,214,0.2);color:#6BAED6;">${p}</span>`
+      ).join(' ') || '<span style="color:rgba(255,255,255,0.4);font-size:11px">Unknown</span>';
+
+      const closerProgTagsHtml = (f.closerPrograms||[]).map(p => {
+        const matches = (f.centreProgramsNeeded||[]).some(cp=>cp.toLowerCase()===p.toLowerCase());
+        return `<span style="font-size:10px;font-weight:800;padding:2px 7px;border-radius:8px;background:${matches?'rgba(141,198,63,0.3)':'rgba(255,255,255,0.1)'};color:${matches?'#8DC63F':'rgba(255,255,255,0.5)'};">${p}${matches?' ✓':''}</span>`;
+      }).join(' ') || '<span style="color:rgba(255,255,255,0.4);font-size:11px">Not set</span>';
+
+      const progIcon   = f.programMatch ? '✅' : '❌';
+      const availIcon  = f.freeAtTime === true ? '✅' : f.freeAtTime === false ? '❌' : '❓';
+      const availText  = f.freeAtTime === true ? 'Available' : f.freeAtTime === false ? 'Has conflict' : 'Unknown';
+
+      const coverHtml = f.coverSuggestion ? `
+        <div style="margin-top:10px;background:rgba(141,198,63,0.1);border:1px solid rgba(141,198,63,0.3);border-radius:8px;padding:8px 10px;font-size:11px">
+          <div style="color:#8DC63F;font-weight:900;margin-bottom:3px">🔄 SWAP SUGGESTION</div>
+          <div style="color:rgba(255,255,255,0.8);font-weight:700">
+            Move <b>${f.closer}</b> to <b>${f.centre}</b><br>
+            <b>${f.coverSuggestion.coverName}</b> is free and can cover <b>${f.coverSuggestion.conflictCentre}</b>
+            ${f.coverSuggestion.conflictProgram ? `(${f.coverSuggestion.conflictProgram})` : ''}
+          </div>
+        </div>` : f.freeAtTime === false ? `
+        <div style="margin-top:10px;background:rgba(255,165,0,0.1);border:1px solid rgba(255,165,0,0.3);border-radius:8px;padding:8px 10px;font-size:11px;color:rgba(255,200,100,0.9);font-weight:700">
+          ⚠ ${f.closer} has a conflicting session — no free cover found automatically. Manual review needed.
+        </div>` : '';
+
+      html += `<div class="flag-card flag-orange" style="margin-bottom:8px">
+        <div class="flag-title">
+          <span style="background:rgba(247,148,29,0.3);padding:3px 8px;border-radius:8px;font-size:11px">📍 CLOSER COACH</span>
+          ${f.coachName} <span style="font-size:11px;color:rgba(255,255,255,0.55)">${f.state}</span>
+          <span style="margin-left:auto;font-size:11px;color:rgba(255,255,255,0.5)">${f.tripDate}</span>
+        </div>
+        <div class="flag-desc" style="margin-bottom:10px">${f.msg}</div>
+
+        <div style="display:flex;gap:8px;margin-bottom:10px;flex-wrap:wrap">
+          <div style="background:rgba(0,0,0,0.2);border-radius:8px;padding:6px 10px;font-size:11px;font-weight:800">
+            ${progIcon} Program match
+          </div>
+          <div style="background:rgba(0,0,0,0.2);border-radius:8px;padding:6px 10px;font-size:11px;font-weight:800">
+            ${availIcon} ${availText} that day
+          </div>
+        </div>
+
+        <div style="display:grid;grid-template-columns:1fr 1fr;gap:8px;font-size:11px">
+          <div style="background:rgba(0,0,0,0.15);border-radius:8px;padding:8px">
+            <div style="color:rgba(255,255,255,0.5);font-weight:700;margin-bottom:4px">CENTRE NEEDS</div>
+            ${centreProgTagsHtml}
+          </div>
+          <div style="background:rgba(0,0,0,0.15);border-radius:8px;padding:8px">
+            <div style="color:rgba(255,255,255,0.5);font-weight:700;margin-bottom:4px">${f.closer} DELIVERS</div>
+            ${closerProgTagsHtml}
+          </div>
+        </div>
+        ${coverHtml}
+      </div>`;
+    });
+    html += `</div>`;
+  }
+
+  el.innerHTML = html;
+}
+
+// ── RENDER TRIP LOG ───────────────────────────────────────────────────────────
+function renderTripLog(coaches) {
+  const el = document.getElementById('tab-trips');
+  const allTrips = coaches.flatMap(c => c.trips.map(t=>({...t,coachName:c.fullName,state:c.state})));
+  allTrips.sort((a,b)=>a.date-b.date);
+
+  if (!allTrips.length) { el.innerHTML='<div class="empty">No trips this period</div>'; return; }
+
+  let html = `<div class="table-wrap"><table class="payroll-table">
+    <thead><tr><th>Date</th><th>Coach</th><th>Type</th><th>Origin</th><th>Destination</th><th>Time</th><th>KM</th><th>Flags</th></tr></thead>
+    <tbody>`;
+
+  allTrips.forEach(t => {
+    const flagHtml = t.flags.map(f => f==='LONG'?'🔴 Long':'').join('');
+    html += `<tr>
+      <td>${t.day}</td>
+      <td>${t.coachName}</td>
+      <td><span style="font-size:10px;font-weight:800;padding:2px 7px;border-radius:8px;background:${t.type.includes('Home')?'rgba(76,175,80,0.3)':'rgba(107,174,214,0.3)'}">${t.type.includes('Home')?'H→C':'C→C'}</span></td>
+      <td>${t.origin}</td>
+      <td>${t.dest}</td>
+      <td style="color:rgba(255,255,255,0.6)">${t.startTime}</td>
+      <td>${t.km!==null?t.km+'km':'~est'}</td>
+      <td>${flagHtml}</td>
+    </tr>`;
+  });
+  html += '</tbody></table></div>';
+  el.innerHTML = html;
+}
+
+// ── RENDER ALL ────────────────────────────────────────────────────────────────
+function updateStats(coaches) {
+  const totKm    = Math.round(coaches.reduce((s,c)=>s+c.totalKm,0)*10)/10;
+  const totPay   = coaches.reduce((s,c)=>s+c.reimbursement,0);
+  const totSess  = coaches.reduce((s,c)=>s+c.totalSessions,0);
+  const totFlags = coaches.reduce((s,c)=>s+c.flags.length,0);
+  document.getElementById('s-km').textContent      = totKm+'km';
+  document.getElementById('s-pay').textContent     = '$'+totPay.toFixed(2);
+  document.getElementById('s-coaches').textContent = coaches.length;
+  document.getElementById('s-sessions').textContent= totSess;
+  document.getElementById('s-flags').textContent   = totFlags;
+}
+
+// ── COACH SETTINGS (localStorage) ────────────────────────────────────────────
+function getCoachSettings() {
+  try { return JSON.parse(localStorage.getItem('mm_coach_settings')||'{}'); } catch(e) { return {}; }
+}
+function saveCoachSetting(coachId, key, value) {
+  const s = getCoachSettings();
+  if (!s[coachId]) s[coachId] = {};
+  s[coachId][key] = value;
+  localStorage.setItem('mm_coach_settings', JSON.stringify(s));
+}
+function getCoachType(coachId) {
+  return getCoachSettings()[coachId]?.type || 'casual';
+}
+function getCoachContractedHours(coachId) {
+  return parseFloat(getCoachSettings()[coachId]?.hours || 0);
+}
+
+// ── RENDER SETTINGS TAB ───────────────────────────────────────────────────────
+function renderSettings() {
+  const el = document.getElementById('tab-settings');
+  if (!RAW) { el.innerHTML='<div class="empty">Load data first</div>'; return; }
+
+  const { users } = RAW;
+  const EXCLUDED_SET = new Set(['joel foulds','shane foulds','troy wilson','rhiannon thompson','katie thomas','viki hamawi']);
+  const coaches = Object.values(users)
+    .filter(u => u.role==='coach' && (u.status==='Active'||!u.status))
+    .filter(u => !EXCLUDED_SET.has(`${(u.firstName||'').trim()} ${(u.lastName||'').trim()}`.toLowerCase()))
+    .sort((a,b)=>`${a.firstName}${a.lastName}`.localeCompare(`${b.firstName}${b.lastName}`));
+
+  const settings = getCoachSettings();
+  const stateFilter = document.getElementById('state-filter').value;
+  const filtered = stateFilter ? coaches.filter(c => {
+    const s = c.city || (c.address?.match(/\b(VIC|NSW|QLD|WA|SA|TAS|ACT|NT)\b/)||[])[1];
+    return s === stateFilter;
+  }) : coaches;
+
+  let html = `
+    <div style="margin-bottom:12px;font-size:12px;color:rgba(255,255,255,0.7);font-weight:700">
+      Set each coach as Casual or Part Time. For Part Time coaches, enter their contracted fortnightly hours.
+      Settings are saved automatically in your browser.
+    </div>
+    <div class="table-wrap">
+    <table class="settings-table">
+      <thead><tr>
+        <th>Coach</th><th>State</th><th>Type</th><th>Contracted hrs/fortnight</th><th>Status</th>
+      </tr></thead>
+      <tbody>`;
+
+  filtered.forEach(c => {
+    const cid = c.id;
+    const fullName = `${(c.firstName||'').trim()} ${(c.lastName||'').trim()}`;
+    const state = c.city || (c.address?.match(/\b(VIC|NSW|QLD|WA|SA|TAS|ACT|NT)\b/)||[])[1] || '?';
+    const type = settings[cid]?.type || 'casual';
+    const hours = settings[cid]?.hours || '';
+    const isPT = type === 'pt';
+
+    html += `<tr>
+      <td>${fullName}</td>
+      <td>${state}</td>
+      <td>
+        <select class="coach-type-select" data-coach="${cid}" onchange="window.onTypeChange('${cid}', this.value)">
+          <option value="casual" ${!isPT?'selected':''}>Casual</option>
+          <option value="pt" ${isPT?'selected':''}>Part Time</option>
+        </select>
+      </td>
+      <td>
+        <input type="number" class="coach-hours-input" id="hrs-${cid}"
+          value="${hours}" min="0" step="0.5" placeholder="e.g. 40"
+          ${isPT?'':'disabled'}
+          onchange="window.onHoursChange('${cid}', this.value)">
+        <span class="save-indicator" id="saved-${cid}"></span>
+      </td>
+      <td><span class="${isPT?'type-pt':'type-casual'}" id="type-label-${cid}">${isPT?'Part Time':'Casual'}</span></td>
+    </tr>`;
+  });
+
+  html += '</tbody></table></div>';
+  el.innerHTML = html;
+}
+
+window.onTypeChange = function(coachId, type) {
+  saveCoachSetting(coachId, 'type', type);
+  const hrsInput = document.getElementById(`hrs-${coachId}`);
+  const label = document.getElementById(`type-label-${coachId}`);
+  if (hrsInput) hrsInput.disabled = type !== 'pt';
+  if (label) {
+    label.textContent = type==='pt'?'Part Time':'Casual';
+    label.className = type==='pt'?'type-pt':'type-casual';
+  }
+  showSaved(coachId);
+};
+
+window.onHoursChange = function(coachId, hours) {
+  saveCoachSetting(coachId, 'hours', parseFloat(hours)||0);
+  showSaved(coachId);
+};
+
+function showSaved(coachId) {
+  const el = document.getElementById(`saved-${coachId}`);
+  if (!el) return;
+  el.textContent = '✓ saved';
+  setTimeout(()=>{ if(el) el.textContent=''; }, 2000);
+}
+
+async function loadData() {
+  ['tab-overview','tab-payroll','tab-flags','tab-trips'].forEach(id => {
+    document.getElementById(id).innerHTML = '<div class="loading"><div class="spinner"></div><p id="load-msg">Loading data…</p></div>';
+  });
+  const coaches = await computeTrips(currentPeriod);
+  COMPUTED = coaches;
+  updateStats(coaches);
+  renderOverview(coaches);
+  renderPayroll(coaches, currentPeriod);
+  renderFlags(coaches);
+  renderTripLog(coaches);
+}
+
+// ── SCROLL TO FLAG SECTION ───────────────────────────────────────────────────
+window.scrollToFlag = function(section) {
+  // Switch to flags tab first
+  document.querySelectorAll('.nav-tab').forEach(t=>t.classList.remove('active'));
+  document.querySelector('[data-tab="flags"]').classList.add('active');
+  ['overview','payroll','flags','trips','pt-hours','settings'].forEach(t=>{
+    document.getElementById('tab-'+t).style.display=t==='flags'?'block':'none';
+  });
+  // Then scroll to section
+  setTimeout(() => {
+    const el = document.getElementById('flag-section-'+section);
+    if (el) el.scrollIntoView({behavior:'smooth', block:'start'});
+  }, 100);
+};
+
+window.goToFlags = function() {
+  document.querySelectorAll('.nav-tab').forEach(t=>t.classList.remove('active'));
+  document.querySelector('[data-tab="flags"]').classList.add('active');
+  ['overview','payroll','flags','trips','pt-hours','settings'].forEach(t=>{
+    document.getElementById('tab-'+t).style.display=t==='flags'?'block':'none';
+  });
+  if (COMPUTED) renderFlags(COMPUTED);
+};
+
+// ── AUTH ──────────────────────────────────────────────────────────────────────
+function updateLastUpdated() {
+  let secs=0; clearInterval(window._tick);
+  window._tick=setInterval(()=>{
+    secs+=10;
+    const el=document.getElementById('last-updated');
+    if(el) el.textContent=secs<60?'Updated just now':secs<120?'Updated 1 min ago':`Updated ${Math.floor(secs/60)} mins ago`;
+  },10000);
+  const el=document.getElementById('last-updated');
+  if(el) el.textContent='Updated just now';
+}
+
+// ── RENDER PT HOURS TAB ──────────────────────────────────────────────────────
+function renderPTHours() {
+  const el = document.getElementById('tab-pt-hours');
+  if (!COMPUTED) { el.innerHTML='<div class="empty">Load data first — select a period and wait for calculation</div>'; return; }
+
+  const settings = getCoachSettings();
+  const ptCoaches = COMPUTED.filter(c => c.coachType === 'pt');
+  const allPTIds = Object.entries(settings).filter(([,v])=>v.type==='pt').map(([id])=>id);
+  const computedIds = new Set(COMPUTED.map(c=>c.id));
+  const missingPT = allPTIds.filter(id => !computedIds.has(id)).map(id => {
+    const u = RAW?.users[id];
+    if (!u) return null;
+    return {
+      id, fullName:`${(u.firstName||'').trim()} ${(u.lastName||'').trim()}`,
+      state: u.city||(u.address?.match(/(VIC|NSW|QLD|WA|SA|TAS|ACT|NT)/)||[])[1]||'?',
+      profilePic:u.profilePic||null, firstName:u.firstName||'', lastName:u.lastName||'',
+      coachType:'pt', contractedHours:getCoachContractedHours(id),
+      totalFortnightHrs:0, totalSessions:0, totalDays:0, totalKm:0, overflowHrs:0, reimbursement:0
+    };
+  }).filter(Boolean);
+
+  const allPT = [...ptCoaches, ...missingPT];
+  if (!allPT.length) {
+    el.innerHTML = '<div class="empty">No Part Time coaches set up — go to Coach Settings tab to mark coaches as Part Time</div>';
+    return;
+  }
+
+  allPT.sort((a,b) => {
+    const aOver = a.contractedHours>0 && a.totalFortnightHrs>a.contractedHours;
+    const bOver = b.contractedHours>0 && b.totalFortnightHrs>b.contractedHours;
+    if (aOver && !bOver) return -1;
+    if (!aOver && bOver) return 1;
+    const aPct = a.contractedHours>0 ? a.totalFortnightHrs/a.contractedHours : 0;
+    const bPct = b.contractedHours>0 ? b.totalFortnightHrs/b.contractedHours : 0;
+    return bPct - aPct;
+  });
+
+  const totalContracted = allPT.reduce((s,c)=>s+(c.contractedHours||0),0);
+  const totalWorked = allPT.reduce((s,c)=>s+(c.totalFortnightHrs||0),0);
+  const overCount = allPT.filter(c=>c.contractedHours>0&&c.totalFortnightHrs>c.contractedHours).length;
+
+  el.innerHTML = `
+    <div class="stats-row" style="margin-bottom:16px">
+      <div class="stat-pill"><div class="stat-pill-label">PT Coaches</div><div class="stat-pill-val">${allPT.length}</div></div>
+      <div class="stat-pill"><div class="stat-pill-label">Hours Worked</div><div class="stat-pill-val">${totalWorked.toFixed(1)}h</div></div>
+      <div class="stat-pill"><div class="stat-pill-label">Total Contracted</div><div class="stat-pill-val">${totalContracted}h</div></div>
+      <div class="stat-pill"><div class="stat-pill-label">Over Contract</div><div class="stat-pill-val" style="color:var(--red)">${overCount}</div></div>
+    </div>
+    <div class="pt-hours-grid" id="pt-grid"></div>
+  `;
+
+  const grid = document.getElementById('pt-grid');
+  allPT.forEach(coach => {
+    const contracted = coach.contractedHours||0;
+    const worked = coach.totalFortnightHrs||0;
+    const pct = contracted>0 ? Math.min((worked/contracted)*100,100) : 0;
+    const over = contracted>0 && worked>contracted;
+    const unset = contracted===0;
+    const remaining = Math.max(0, contracted-worked);
+    const overBy = Math.max(0, worked-contracted);
+    const color = avatarColor(coach.fullName);
+    const inits = initials(coach.firstName, coach.lastName);
+    const barColor = unset?'rgba(255,255,255,0.3)':over?'#E31E24':worked/contracted>0.8?'#F7941D':'#4CAF50';
+    const statusMsg = unset
+      ? '⚙️ No contracted hours set — go to Coach Settings to add'
+      : over ? `🔴 Over by ${overBy.toFixed(1)}h — reimbursement applies to overflow`
+      : `✅ ${remaining.toFixed(1)}h remaining this fortnight`;
+
+    const card = document.createElement('div');
+    card.className = `pt-card ${unset?'unset':over?'over':'within'}`;
+    const photoHtml = coach.profilePic
+      ? `<img class="pt-img" src="${coach.profilePic}" onerror="this.style.display='none';this.nextSibling.style.display='flex'" alt="${coach.fullName}"><div class="pt-avatar" style="display:none;background:${color}33;color:${color}">${inits}</div>`
+      : `<div class="pt-avatar" style="background:${color}33;color:${color}">${inits}</div>`;
+
+    card.innerHTML = `
+      <div class="pt-card-top">
+        ${photoHtml}
+        <div>
+          <div class="pt-name">${coach.fullName}</div>
+          <div class="pt-state">${coach.state}</div>
+        </div>
+        <div class="pt-score-area">
+          <div class="pt-hours-big" style="color:${barColor}">${worked.toFixed(1)}h</div>
+          <div class="pt-hours-label">of ${contracted>0?contracted+'h contracted':'unset'}</div>
+        </div>
+      </div>
+      <div class="pt-bar-wrap">
+        <div class="pt-bar-bg"><div class="pt-bar-fill" style="width:${pct}%;background:${barColor}"></div></div>
+      </div>
+      <div class="pt-stats-row">
+        <span class="pt-stat">Sessions <b>${coach.totalSessions}</b></span>
+        <span class="pt-stat">Days worked <b>${coach.totalDays}</b></span>
+        <span class="pt-stat">Travel KM <b>${coach.totalKm}km</b></span>
+        <span class="pt-stat">Reimbursement <b>$${(coach.reimbursement||0).toFixed(2)}</b></span>
+        ${contracted>0?`<span class="pt-stat">Usage <b>${Math.round((worked/contracted)*100)}%</b></span>`:''}
+      </div>
+      <div class="pt-warning ${unset?'unset':over?'over':'within'}">${statusMsg}</div>
+    `;
+    grid.appendChild(card);
+  });
+}
+
+async function fullRefresh() {
+  const btn=document.getElementById('refresh-btn');
+  if(btn) btn.classList.add('spinning');
+  try { await loadRaw(); await loadData(); updateLastUpdated(); }
+  finally { if(btn) btn.classList.remove('spinning'); }
+}
+
+onAuthStateChanged(auth, async user => {
+  if (user) {
+    document.getElementById('login-screen').style.display='none';
+    document.getElementById('app').style.display='block';
+    await loadRaw();
+    await loadData();
+    updateLastUpdated();
+    autoTimer = setInterval(fullRefresh, 10*60*1000);
+  } else {
+    document.getElementById('login-screen').style.display='flex';
+    document.getElementById('app').style.display='none';
+    clearInterval(autoTimer);
+  }
+});
+
+document.getElementById('login-btn').addEventListener('click', async()=>{
+  const err=document.getElementById('login-err');
+  err.style.display='none';
+  err.textContent='Signing in…';
+  err.style.display='block';
+  err.style.color='rgba(0,0,0,0.5)';
+  try {
+    await signInWithEmailAndPassword(auth,document.getElementById('em').value,document.getElementById('pw').value);
+  } catch(e){
+    err.textContent='Error: '+e.message;
+    err.style.display='block';
+    err.style.color='var(--red)';
+  }
+});
+document.getElementById('pw').addEventListener('keydown',e=>{if(e.key==='Enter')document.getElementById('login-btn').click();});
+document.getElementById('signout-btn').addEventListener('click',()=>{ clearInterval(autoTimer); signOut(auth); });
+document.getElementById('refresh-btn').addEventListener('click',fullRefresh);
+
+// Tabs
+document.querySelectorAll('.nav-tab').forEach(btn=>{
+  btn.addEventListener('click',()=>{
+    document.querySelectorAll('.nav-tab').forEach(t=>t.classList.remove('active'));
+    btn.classList.add('active');
+    const tab=btn.dataset.tab;
+    ['overview','payroll','flags','trips','pt-hours','settings'].forEach(t=>{
+      document.getElementById('tab-'+t).style.display=t===tab?'block':'none';
+    });
+    if(tab==='settings') renderSettings();
+    if(tab==='pt-hours') renderPTHours();
+  });
+});
+
+// Period buttons
+document.querySelectorAll('.period-btn[data-period]').forEach(btn=>{
+  btn.addEventListener('click',()=>{
+    document.querySelectorAll('.period-btn[data-period]').forEach(b=>b.classList.remove('active'));
+    btn.classList.add('active');
+    currentPeriod=btn.dataset.period;
+    document.getElementById('custom-dates').style.display=currentPeriod==='custom'?'flex':'none';
+    if(currentPeriod!=='custom') loadData();
+  });
+});
+
+// Settings changes re-compute
+['km-threshold','km-rate','state-filter','flag-km'].forEach(id=>{
+  document.getElementById(id).addEventListener('change',()=>{ if(RAW) loadData(); });
+});
+</script>
+<script src="https://maps.googleapis.com/maps/api/js?key=AIzaSyD_MpSn0m96wTjCLUvXBdOLJBF-lPCQ5SE&libraries=geometry" async defer></script>
+</body>
+</html>

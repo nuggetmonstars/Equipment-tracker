@@ -1,0 +1,1266 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Mini Monstars — Coach Leaderboard</title>
+<link href="https://fonts.googleapis.com/css2?family=Nunito:wght@400;600;700;800;900&family=Nunito+Sans:wght@400;600;700&display=swap" rel="stylesheet">
+<style>
+:root {
+  --sky: #29ABE2;
+  --sky-dark: #1a8bbf;
+  --yellow: #FFD700;
+  --yellow-dark: #e6b800;
+  --red: #E31E24;
+  --green-top: #3aab3a;
+  --row-1: #4CAF50;
+  --row-2: #7CB342;
+  --row-3: #F9A825;
+  --row-4: #FB8C00;
+  --row-5: #E53935;
+  --white: #ffffff;
+  --font: 'Nunito', sans-serif;
+}
+*, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+html, body { min-height: 100vh; }
+
+body {
+  background: var(--sky);
+  font-family: var(--font);
+  overflow-x: hidden;
+}
+
+/* Lightning bolt BG */
+body::before {
+  content: '';
+  position: fixed;
+  inset: 0;
+  background:
+    linear-gradient(135deg, transparent 40%, rgba(255,215,0,0.18) 40%, rgba(255,215,0,0.18) 47%, transparent 47%),
+    linear-gradient(135deg, transparent 55%, rgba(255,215,0,0.12) 55%, rgba(255,215,0,0.12) 62%, transparent 62%),
+    linear-gradient(225deg, transparent 30%, rgba(255,215,0,0.15) 30%, rgba(255,215,0,0.15) 37%, transparent 37%),
+    linear-gradient(225deg, transparent 48%, rgba(255,215,0,0.1) 48%, rgba(255,215,0,0.1) 55%, transparent 55%);
+  pointer-events: none;
+  z-index: 0;
+}
+
+/* ── LOGIN ── */
+#login-screen {
+  position: fixed; inset: 0; z-index: 1000;
+  display: flex; align-items: center; justify-content: center;
+}
+.login-box {
+  background: rgba(255,255,255,0.97);
+  border-radius: 24px;
+  padding: 40px 36px;
+  width: 360px;
+  box-shadow: 0 20px 60px rgba(0,0,0,0.25);
+  text-align: center;
+}
+.login-logo-text {
+  font-size: 28px; font-weight: 900; color: var(--red);
+  letter-spacing: -1px; line-height: 1; margin-bottom: 4px;
+}
+.login-logo-star { color: var(--yellow-dark); }
+.login-sub { font-size: 12px; color: #888; margin-bottom: 28px; font-weight: 600; }
+.login-box label { display: block; text-align: left; font-size: 11px; font-weight: 700; color: #666; margin-bottom: 5px; text-transform: uppercase; letter-spacing: .6px; }
+.login-box input {
+  display: block; width: 100%;
+  border: 2px solid #e8e8e8; border-radius: 12px;
+  padding: 10px 14px; font-size: 14px; margin-bottom: 14px;
+  font-family: var(--font); outline: none; transition: border-color .15s;
+}
+.login-box input:focus { border-color: var(--sky); }
+.login-btn {
+  width: 100%; background: var(--yellow); color: #333;
+  border: none; border-radius: 50px; padding: 12px;
+  font-size: 15px; font-weight: 900; cursor: pointer;
+  font-family: var(--font); letter-spacing: .5px;
+  box-shadow: 0 4px 0 var(--yellow-dark);
+  transition: transform .1s, box-shadow .1s;
+}
+.login-btn:hover { transform: translateY(-1px); box-shadow: 0 5px 0 var(--yellow-dark); }
+.login-btn:active { transform: translateY(2px); box-shadow: 0 2px 0 var(--yellow-dark); }
+.login-err { color: var(--red); font-size: 12px; margin-top: 8px; font-weight: 700; display: none; }
+
+/* ── APP ── */
+#app { display: none; position: relative; z-index: 1; min-height: 100vh; padding-bottom: 40px; }
+
+/* ── HEADER ── */
+.hdr {
+  display: flex; align-items: center; gap: 12px;
+  padding: 16px 24px;
+}
+.hdr-logo {
+  font-size: 22px; font-weight: 900; color: var(--white);
+  text-shadow: 0 2px 0 rgba(0,0,0,0.2);
+  letter-spacing: -0.5px;
+}
+.hdr-logo span { color: var(--yellow); }
+.hdr-space { flex: 1; }
+.hdr-email { font-size: 12px; color: rgba(255,255,255,0.7); font-weight: 600; }
+.hdr-refresh {
+  background: rgba(255,255,255,0.15); border: 2px solid rgba(255,255,255,0.3);
+  border-radius: 50%; color: #fff; width: 32px; height: 32px;
+  font-size: 16px; font-weight: 700; cursor: pointer; font-family: var(--font);
+  display: flex; align-items: center; justify-content: center;
+  transition: transform .3s, background .15s;
+}
+.hdr-refresh:hover { background: rgba(255,255,255,0.25); }
+.hdr-refresh.spinning { animation: spin .7s linear infinite; }
+.hdr-signout {
+  background: rgba(255,255,255,0.2); border: 2px solid rgba(255,255,255,0.4);
+  border-radius: 50px; color: #fff; padding: 5px 14px;
+  font-size: 12px; font-weight: 700; cursor: pointer; font-family: var(--font);
+}
+.hdr-signout:hover { background: rgba(255,255,255,0.3); }
+
+/* ── NAV TABS ── */
+.nav {
+  display: flex; gap: 8px; padding: 0 24px 16px;
+  overflow-x: auto;
+}
+.nav-tab {
+  background: rgba(255,255,255,0.25);
+  border: none; border-radius: 50px;
+  color: rgba(255,255,255,0.85); padding: 8px 20px;
+  font-size: 13px; font-weight: 800; cursor: pointer;
+  font-family: var(--font); white-space: nowrap;
+  transition: all .15s; letter-spacing: .3px;
+  box-shadow: 0 3px 0 rgba(0,0,0,0.1);
+}
+.nav-tab:hover { background: rgba(255,255,255,0.35); }
+.nav-tab.active {
+  background: var(--yellow); color: #333;
+  box-shadow: 0 4px 0 var(--yellow-dark);
+}
+
+/* ── STAT PILLS ── */
+.stats-row {
+  display: flex; gap: 10px; padding: 0 24px 20px; flex-wrap: wrap;
+}
+.stat-pill {
+  background: var(--yellow);
+  border-radius: 50px; padding: 10px 22px;
+  display: flex; align-items: center; gap: 8px;
+  box-shadow: 0 4px 0 var(--yellow-dark);
+  transition: transform .1s, box-shadow .1s;
+}
+.stat-pill:hover { transform: translateY(-1px); box-shadow: 0 5px 0 var(--yellow-dark); }
+.stat-pill:active { transform: translateY(1px); box-shadow: 0 3px 0 var(--yellow-dark); }
+.stat-pill-label {
+  font-size: 11px; font-weight: 900; color: #6b4a00;
+  text-transform: uppercase; letter-spacing: .5px;
+}
+.stat-pill-val {
+  font-size: 20px; font-weight: 900; color: #333; line-height: 1;
+}
+
+/* ── FILTERS ── */
+.filters {
+  display: flex; gap: 8px; padding: 0 24px 16px; flex-wrap: wrap;
+}
+.filters input, .filters select {
+  background: rgba(255,255,255,0.2);
+  border: 2px solid rgba(255,255,255,0.4);
+  border-radius: 50px; color: #fff; padding: 7px 16px;
+  font-size: 12px; font-weight: 700; font-family: var(--font); outline: none;
+}
+.filters input::placeholder { color: rgba(255,255,255,0.6); }
+.filters input:focus, .filters select:focus { background: rgba(255,255,255,0.3); border-color: rgba(255,255,255,0.7); }
+.filters select option { background: #1a8bbf; color: #fff; }
+.filters input { min-width: 200px; }
+
+/* ── LOADING ── */
+.loading { text-align: center; padding: 60px 0; }
+.spinner {
+  width: 40px; height: 40px; border: 4px solid rgba(255,255,255,0.3);
+  border-top-color: #fff; border-radius: 50%;
+  animation: spin .7s linear infinite; margin: 0 auto 14px;
+}
+.loading p { color: rgba(255,255,255,0.8); font-weight: 700; font-size: 14px; }
+@keyframes spin { to { transform: rotate(360deg); } }
+.empty { text-align: center; padding: 48px; color: rgba(255,255,255,0.8); font-weight: 700; }
+
+/* ── LEADERBOARD ROWS ── */
+.lb { display: flex; flex-direction: column; gap: 0; padding: 0 24px; }
+
+.cc {
+  display: flex; align-items: center; gap: 0;
+  border-radius: 16px; margin-bottom: 8px;
+  overflow: hidden;
+  box-shadow: 0 4px 12px rgba(0,0,0,0.2);
+  cursor: pointer;
+  transition: transform .15s, box-shadow .15s;
+  position: relative;
+}
+.cc:hover { transform: translateY(-2px); box-shadow: 0 8px 20px rgba(0,0,0,0.25); }
+
+/* Stepped width — top ranks wider */
+.cc[data-rank="1"] { width: 100%; }
+.cc[data-rank="2"] { width: 97%; }
+.cc[data-rank="3"] { width: 94%; }
+.cc[data-rank="4"] { width: 91%; }
+.cc[data-rank="5"] { width: 88%; }
+.cc[data-rank="6"] { width: 85%; }
+.cc[data-rank="7"] { width: 82%; }
+.cc[data-rank="8"] { width: 79%; }
+.cc[data-rank="9"] { width: 76%; }
+.cc[data-rank-high] { width: 73%; }
+
+.cc-rank-num {
+  font-size: 32px; font-weight: 900; color: var(--medal, rgba(255,255,255,0.9));
+  min-width: 56px; text-align: center; flex-shrink: 0;
+  text-shadow: 0 2px 4px rgba(0,0,0,0.2);
+}
+.cc[style*="--medal"] .cc-name,
+.cc[style*="--medal"] .cc-score-num,
+.cc[style*="--medal"] .cc-score-denom,
+.cc[style*="--medal"] .cc-rank-num,
+.cc[style*="--medal"] .cc-state,
+.cc[style*="--medal"] .tier-badge,
+.cc[style*="--medal"] .cc-inline-stats,
+.cc[style*="--medal"] .cc-inline-stats b {
+  color: var(--medal) !important;
+  text-shadow: 0 1px 3px rgba(0,0,0,0.3);
+}
+.cc[style*="--medal"] .cc-tag {
+  background: rgba(0,0,0,0.15);
+  color: var(--medal) !important;
+  border-color: var(--medal);
+  opacity: 0.9;
+}
+
+.cc-photo {
+  width: 58px; height: 58px; border-radius: 50%;
+  border: 3px solid rgba(255,255,255,0.8);
+  object-fit: cover; flex-shrink: 0;
+  background: rgba(255,255,255,0.2);
+  margin: 8px 0 8px 0;
+}
+.cc-photo-fallback {
+  width: 58px; height: 58px; border-radius: 50%;
+  border: 3px solid rgba(255,255,255,0.8);
+  display: flex; align-items: center; justify-content: center;
+  font-size: 18px; font-weight: 900; color: #fff;
+  flex-shrink: 0; margin: 8px 0;
+  background: rgba(0,0,0,0.15);
+}
+
+.cc-info { flex: 1; padding: 10px 14px; min-width: 0; }
+.cc-name {
+  font-size: 18px; font-weight: 900; color: #fff;
+  text-shadow: 0 1px 3px rgba(0,0,0,0.2);
+  white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
+}
+.cc-meta { display: flex; gap: 6px; margin-top: 4px; align-items: center; flex-wrap: wrap; }
+.cc-state { font-size: 11px; font-weight: 800; color: rgba(255,255,255,0.8); }
+.cc-tag {
+  font-size: 10px; font-weight: 800; padding: 2px 8px;
+  border-radius: 10px; background: rgba(255,255,255,0.25); color: #fff;
+}
+.cc-tag-alert { background: rgba(220,0,0,0.4); }
+.cc-tag-wwcc  { background: rgba(220,0,0,0.5); }
+.cc-tag-vol   { background: rgba(0,0,0,0.2); }
+
+.cc-score-area {
+  display: flex; flex-direction: column; align-items: flex-end;
+  padding: 10px 18px 10px 10px; flex-shrink: 0;
+}
+.cc-score-num {
+  font-size: 28px; font-weight: 900; color: #fff;
+  text-shadow: 0 2px 4px rgba(0,0,0,0.2); line-height: 1;
+  white-space: nowrap;
+}
+.cc-score-denom { font-size: 14px; font-weight: 700; color: rgba(255,255,255,0.7); }
+.tier-badge {
+  font-size: 9px; font-weight: 800; padding: 2px 8px;
+  border-radius: 10px; margin-top: 3px; background: rgba(255,255,255,0.25); color: #fff;
+  text-transform: uppercase; letter-spacing: .5px;
+}
+
+/* ── EXPANDABLE PILLARS ── */
+.cc-expand {
+  display: none;
+  background: rgba(0,0,0,0.12);
+  padding: 12px 16px;
+  border-top: 1px solid rgba(255,255,255,0.15);
+}
+.cc.open .cc-expand { display: block; }
+
+.cc-inline-stats {
+  display: flex; gap: 16px; flex-wrap: wrap; padding: 0 16px 8px 72px;
+  font-size: 11px; font-weight: 700; color: rgba(255,255,255,0.7);
+}
+.cc-inline-stats b { color: #fff; }
+
+.prow { display: flex; align-items: center; gap: 10px; margin-bottom: 6px; }
+.prow:last-child { margin-bottom: 0; }
+.pname { font-size: 11px; font-weight: 700; color: rgba(255,255,255,0.8); min-width: 150px; }
+.pbar-bg { flex: 1; height: 6px; background: rgba(255,255,255,0.15); border-radius: 3px; overflow: hidden; }
+.pbar-fill { height: 100%; border-radius: 3px; background: rgba(255,255,255,0.8); }
+.pscore { font-size: 11px; font-weight: 800; color: #fff; min-width: 52px; text-align: right; }
+.nodata { font-size: 11px; font-weight: 600; color: rgba(255,255,255,0.45); font-style: italic; }
+
+/* ── DEVELOPING ── */
+.dev-grid { display: flex; flex-direction: column; gap: 8px; padding: 0 24px; }
+.dev-card {
+  background: rgba(255,255,255,0.2); border: 2px solid rgba(255,255,255,0.35);
+  border-radius: 16px; padding: 14px 16px; display: flex; align-items: center; gap: 12px;
+}
+.dev-body { flex: 1; }
+.dev-name { font-size: 15px; font-weight: 900; color: #fff; margin-bottom: 8px; display: flex; align-items: center; gap: 6px; }
+.prow2 { display: flex; align-items: center; gap: 8px; margin-bottom: 6px; }
+.prow2:last-child { margin-bottom: 0; }
+.plabel2 { font-size: 11px; font-weight: 700; color: rgba(255,255,255,0.75); min-width: 130px; }
+.pbar2-bg { flex: 1; height: 5px; background: rgba(255,255,255,0.15); border-radius: 3px; overflow: hidden; }
+.pbar2-fill { height: 100%; border-radius: 3px; }
+.pval2 { font-size: 11px; font-weight: 800; color: #fff; min-width: 34px; text-align: right; }
+.dev-gscore { text-align: right; flex-shrink: 0; }
+.dev-gscore-num { font-size: 20px; font-weight: 900; color: #fff; display: block; }
+.dev-gscore-lbl { font-size: 10px; color: rgba(255,255,255,0.6); font-weight: 700; }
+
+/* ── ALERTS ── */
+.alert-grid { display: flex; flex-direction: column; gap: 8px; padding: 0 24px; }
+.alert-card {
+  background: rgba(227,30,36,0.25); border: 2px solid rgba(227,30,36,0.4);
+  border-radius: 16px; padding: 14px 16px;
+}
+.alert-name { font-size: 14px; font-weight: 900; color: #fff; margin-bottom: 8px; display: flex; align-items: center; gap: 8px; }
+.alert-list { display: flex; flex-direction: column; gap: 4px; }
+.alert-item { font-size: 12px; color: #ffc0c0; font-weight: 600; display: flex; gap: 6px; }
+
+/* ── REWARDS ── */
+.rewards-wrap { padding: 0 24px; }
+.rewards-intro { font-size: 13px; color: rgba(255,255,255,0.85); font-weight: 600; margin-bottom: 16px; line-height: 1.6; }
+.reward-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(200px, 1fr)); gap: 10px; }
+.rcard {
+  background: rgba(255,255,255,0.2); border: 2px solid rgba(255,255,255,0.3);
+  border-radius: 16px; padding: 14px;
+}
+.rcard-name { font-size: 14px; font-weight: 900; color: #fff; margin-bottom: 2px; }
+.rcard-count { font-size: 11px; color: rgba(255,255,255,0.7); font-weight: 700; margin-bottom: 7px; }
+.rcard-stars { font-size: 14px; color: var(--yellow); margin-bottom: 5px; }
+.rcard-eligible { font-size: 11px; color: #90ee90; font-weight: 800; }
+.rcard-progress { font-size: 11px; color: rgba(255,255,255,0.6); font-weight: 600; }
+
+/* ── MISSION ── */
+.mission {
+  margin: 0 24px 16px;
+  background: rgba(255,255,255,0.15);
+  border: 2px solid rgba(255,255,255,0.25);
+  border-radius: 16px; padding: 10px 16px;
+  display: flex; align-items: center; gap: 10px; flex-wrap: wrap;
+}
+.mission-text { font-size: 11px; color: rgba(255,255,255,0.85); font-weight: 600; font-style: italic; flex: 1; min-width: 180px; }
+.mission-pills { display: flex; gap: 5px; flex-wrap: wrap; }
+.mpill {
+  background: var(--yellow); color: #5a3a00;
+  border-radius: 20px; padding: 2px 10px;
+  font-size: 10px; font-weight: 900;
+}
+
+@media (max-width: 600px) {
+  .hdr-email { display: none; }
+  .stats-row { flex-wrap: wrap; }
+  .cc-name { font-size: 15px; }
+  .cc-score-num { font-size: 22px; }
+  .cc-rank-num { font-size: 24px; min-width: 40px; }
+  .cc { width: 100% !important; }
+}
+</style>
+</head>
+<body>
+
+<!-- LOGIN -->
+<div id="login-screen">
+  <div class="login-box">
+    <div class="login-logo-text">MINI MONST<span class="login-logo-star">★</span>RS</div>
+    <div class="login-sub">Coach Performance Dashboard</div>
+    <label>Email</label>
+    <input type="email" id="em" placeholder="admin@minimonstars.net" autocomplete="email">
+    <label>Password</label>
+    <input type="password" id="pw" placeholder="••••••••" autocomplete="current-password">
+    <button class="login-btn" id="login-btn">SIGN IN</button>
+    <div class="login-err" id="login-err"></div>
+  </div>
+</div>
+
+<!-- APP -->
+<div id="app">
+  <div class="hdr">
+    <div class="hdr-logo">MINI MONST<span style="color:var(--yellow)">★</span>RS</div>
+    <div class="hdr-space"></div>
+    <span class="hdr-email" id="hdr-email"></span>
+    <div id="last-updated" style="font-size:11px;color:rgba(255,255,255,0.55);font-weight:600;"></div>
+    <button class="hdr-refresh" id="refresh-btn" title="Refresh data">↻</button>
+    <button class="hdr-signout" id="signout-btn">Sign out</button>
+  </div>
+
+  <div class="mission">
+    <span class="mission-text">"Engaged, enthusiastic coaches inspiring kids to move, have fun, and build lifelong motor skills through purposeful movement."</span>
+    <div class="mission-pills">
+      <span class="mpill">Enthusiasm</span>
+      <span class="mpill">Engagement</span>
+      <span class="mpill">Motor skills</span>
+      <span class="mpill">Purposeful movement</span>
+    </div>
+  </div>
+
+  <div class="nav">
+    <button class="nav-tab active" data-tab="leaderboard">Leaderboard</button>
+    <button class="nav-tab" data-tab="developing">Developing Coaches</button>
+    <button class="nav-tab" data-tab="alerts">Alerts</button>
+    <button class="nav-tab" data-tab="rewards">Rewards</button>
+  </div>
+
+  <!-- LEADERBOARD TAB -->
+  <div id="tab-leaderboard">
+    <div class="stats-row">
+      <div class="stat-pill"><div><div class="stat-pill-label">Leaderboard</div><div class="stat-pill-val" id="s-total">—</div></div></div>
+      <div class="stat-pill"><div><div class="stat-pill-label">Elite Monstars</div><div class="stat-pill-val" id="s-elite">—</div></div></div>
+      <div class="stat-pill" id="need-support-pill" style="cursor:pointer;" title="Click to scroll to coaches needing support"><div><div class="stat-pill-label">Need Support</div><div class="stat-pill-val" id="s-support">—</div></div></div>
+      <div class="stat-pill"><div><div class="stat-pill-label">AVG Score</div><div class="stat-pill-val" id="s-avg">—</div></div></div>
+    </div>
+    <div class="filters">
+      <input type="text" id="lb-search" placeholder="Search coaches…">
+      <select id="lb-period">
+        <option value="ytd">Year to date</option>
+        <option value="3month">Last 3 months</option>
+        <option value="month">This month</option>
+      </select>
+      <select id="lb-state">
+        <option value="">All states</option>
+        <option value="VIC">VIC</option><option value="NSW">NSW</option>
+        <option value="QLD">QLD</option><option value="WA">WA</option>
+        <option value="SA">SA</option><option value="TAS">TAS</option>
+        <option value="ACT">ACT</option><option value="NT">NT</option>
+      </select>
+      <select id="lb-program">
+        <option value="">All programs</option>
+        <option value="Sports">Sports</option><option value="Music">Music</option>
+        <option value="Yoga">Yoga</option><option value="Gymnastics">Gymnastics</option>
+        <option value="Sensory">Sensory</option>
+      </select>
+    </div>
+    <div id="lb-content"><div class="loading"><div class="spinner"></div><p>Loading coach data…</p></div></div>
+  </div>
+
+  <!-- DEVELOPING TAB -->
+  <div id="tab-developing" style="display:none">
+    <div class="filters" style="padding-bottom:16px">
+      <input type="text" id="dev-search" placeholder="Search coaches…">
+      <select id="dev-state">
+        <option value="">All states</option>
+        <option value="VIC">VIC</option><option value="NSW">NSW</option>
+        <option value="QLD">QLD</option><option value="WA">WA</option><option value="SA">SA</option>
+      </select>
+    </div>
+    <div id="dev-content"><div class="loading"><div class="spinner"></div><p>Loading…</p></div></div>
+  </div>
+
+  <!-- ALERTS TAB -->
+  <div id="tab-alerts" style="display:none">
+    <div id="alert-content"><div class="loading"><div class="spinner"></div><p>Loading…</p></div></div>
+  </div>
+
+  <!-- REWARDS TAB -->
+  <div id="tab-rewards" style="display:none">
+    <div id="reward-content"><div class="loading"><div class="spinner"></div><p>Loading…</p></div></div>
+  </div>
+</div>
+
+<script type="module">
+import { initializeApp } from 'https://www.gstatic.com/firebasejs/10.12.5/firebase-app.js';
+import { getAuth, signInWithEmailAndPassword, signOut, onAuthStateChanged } from 'https://www.gstatic.com/firebasejs/10.12.5/firebase-auth.js';
+import { getFirestore, collection, getDocs, query, where } from 'https://www.gstatic.com/firebasejs/10.12.5/firebase-firestore.js';
+
+const app = initializeApp({
+  apiKey: "AIzaSyCpLhBjI2qAwQ6zDWdLXRcR2WqVbOG3kug",
+  authDomain: "mini-monstars-au.firebaseapp.com",
+  projectId: "mini-monstars-au",
+  storageBucket: "mini-monstars-au.appspot.com",
+  messagingSenderId: "1020303504267",
+  appId: "1:1020303504267:web:9d7417231c76b0f351b58e"
+});
+const auth = getAuth(app);
+const db   = getFirestore(app);
+
+const EXCLUDED = ['joel foulds','shane foulds','troy wilson','rhiannon thompson','katie thomas','viki hamawi'];
+const PILLAR_NAMES = ['Enthusiasm & Energy','Child Engagement','Centre Sentiment','Professionalism','Skill Delivery','Program Compliance','Attendance'];
+
+// Tier-based colour palettes — each tier fades lighter as rank drops within it
+// Elite (31-35): deep gold/amber
+// Rising (26-30): greens
+// Developing (19-25): blues
+// Needs Support (<19): reds
+function rowColor(score, rankWithinTier, tierSize) {
+  // fade factor: 0 = darkest, 1 = lightest within tier
+  const fade = tierSize <= 1 ? 0 : Math.min(rankWithinTier / (tierSize - 1), 1);
+
+  if (score >= 31) {
+    // Elite: dark gold → lighter gold
+    const r = Math.round(180 + fade * 40);
+    const g = Math.round(130 + fade * 50);
+    const b = Math.round(0   + fade * 20);
+    return `rgb(${r},${g},${b})`;
+  }
+  if (score >= 26) {
+    // Rising: dark green → lighter green
+    const r = Math.round(30  + fade * 80);
+    const g = Math.round(130 + fade * 60);
+    const b = Math.round(30  + fade * 30);
+    return `rgb(${r},${g},${b})`;
+  }
+  if (score >= 19) {
+    // Developing: deep blue → lighter blue
+    const r = Math.round(20  + fade * 60);
+    const g = Math.round(90  + fade * 60);
+    const b = Math.round(170 + fade * 50);
+    return `rgb(${r},${g},${b})`;
+  }
+  // Needs Support: dark red → lighter red
+  const r = Math.round(160 + fade * 60);
+  const g = Math.round(20  + fade * 40);
+  const b = Math.round(20  + fade * 20);
+  return `rgb(${r},${g},${b})`;
+}
+
+// ── SENTIMENT ENGINE ──────────────────────────────────────────────────────────
+window.scoreDescription = function(text) {
+  if (!text || typeof text !== 'string') return null;
+  const t = text.toLowerCase().trim();
+  if (!t) return null;
+
+  const adminPats = [
+    /\bemailed\b/,/\bcalled\b/,/\bfollow up\b/,/\bfu\b/,/\bnot in until\b/,
+    /\bnot available\b/,/\bcall back\b/,/^locked in$/,/\bkind regards\b/,
+    /\blook forward to seeing\b/,/\bdirector not available\b/,/\bdirector not in\b/,
+    /\bwill grab feedback\b/,/\basked around invoices\b/
+  ];
+  for (const p of adminPats) if (p.test(t)) return null;
+  // Only skip invoice mentions if it's a short admin note, not real feedback that happens to mention invoices
+  if (/\binvoice\b/.test(t) && t.length < 60) return null;
+  if (/she was happy we are still attending/.test(t)) return null;
+  if (/daughter is in the class|son is in the class/.test(t)) return null;
+  if (/director not available but educator said/.test(t)) return null;
+
+  const neg1 = ['not doing well','just not engaging','may request different coach',
+    'look to change to more experienced','want different coach','going through the motions',
+    'not happy with',"won't be continuing",'ending the program','wants a coach change',
+    'someone more energetic and better communicator'];
+  const neg2 = ['repetitive','same activities','not prepared','not as engaging','a lot more quiet',
+    'needs to improve','needs more energy','not following the plan','struggling to engage',
+    'a bit shy','too quiet','better communicator','not very energetic',
+    'consistency in coaches','consistent coach','different coaches','change of coach',
+    'same coach','stick to one','keep the same coach','rotating coaches',
+    'not doing the full','a little bit better','a bit better','could be better',
+    'room for improvement','not engaging enough','lost the kids','kids lost interest',
+    'children lost interest','not very interactive','seemed distracted','running out of ideas',
+    'weather made it','got a little','trickier','less prepared',
+    "hasn't been smooth","not been smooth","hasn't gone smoothly","not gone smoothly",
+    'very busy atm','dont think','not sure if','may not continue','thinking of cancelling',
+    'on the fence','not fully committed','unsure about continuing','questioning the program'];
+  for (const p of neg1) if (t.includes(p)) return 1;
+  for (const p of neg2) if (t.includes(p)) return 2;
+
+  const pos5 = ['no improvements','no areas of improvement','is perfect','absolutely love',
+    'unbelievable','children are loving it','kids are loving it','changing schedule to keep',
+    'moving to arvos to accommodate','super happy','really impressed','extra sign-ups',
+    'lengthy positive email','hoping to lock in','emailed to lock in','been amazing',
+    'been outstanding','been fantastic','been excellent','educators love','director love','director impressed'];
+  const pos4 = ['pretty good','going really well','really happy','children love it','kids love it',
+    'awesome','all good','bonus session','really enjoying','happy to continue',
+    'little ones love it','raves about','positive feedback from families','great with the kids'];
+  const pos3 = ['going well','all went well','no issues','session went well',
+    'children are enjoying','kids are enjoying','really good according to educator',
+    'not too bad','going alright','all going well','seems to be going','been going okay',
+    'going okay','seemed to go well','went well overall','pretty good overall'];
+
+  if (/love\s+\w+/i.test(t)) return 5;
+  if (/locked in \d{4}|locking in \d{4}|back for \d{4}/.test(t)) return 4;
+  for (const p of pos5) if (t.includes(p)) return 5;
+  for (const p of pos4) if (t.includes(p)) return 4;
+  for (const p of pos3) if (t.includes(p)) return 3;
+  if (t === 'good' || t === 'fine') return 3;
+  if (['great','excellent','fantastic','outstanding','amazing'].some(w=>t.includes(w))) return 5;
+  if (['good','well'].some(w=>t.includes(w))) return 3;
+  return null;
+};
+
+function scoreHCWord(w) {
+  if (!w) return null;
+  const v = w.toLowerCase().trim();
+  if (['great','yes','excellent','outstanding'].includes(v)) return 5;
+  if (v === 'good') return 4;
+  if (v === 'average') return 3;
+  if (v === 'below') return 2;
+  if (['poor','no','low'].includes(v)) return 1;
+  return null;
+}
+
+function perCentreAvg(fbs) {
+  const byC = {};
+  for (const f of fbs) {
+    const s = window.scoreDescription(f.desc || f.description);
+    if (s === null) continue;
+    const cid = f.center || '__none__';
+    (byC[cid] = byC[cid]||[]).push(s);
+  }
+  const avgs = Object.values(byC).map(a => a.reduce((x,y)=>x+y,0)/a.length);
+  return avgs.length ? avgs.reduce((x,y)=>x+y,0)/avgs.length : null;
+}
+
+function getState(u) {
+  if (u.State && /^[A-Z]{2,3}$/.test(u.State)) return u.State;
+  if (u.state && /^[A-Z]{2,3}$/.test(u.state)) return u.state;
+  if (u.city  && /^[A-Z]{2,3}$/.test(u.city))  return u.city;
+  if (u.address) { const m = u.address.match(/\b(VIC|NSW|QLD|WA|SA|TAS|ACT|NT)\b/); if (m) return m[1]; }
+  return 'Unknown';
+}
+
+function getPeriodStart(p) {
+  const n = new Date();
+  if (p === 'month')  return new Date(n.getFullYear(), n.getMonth(), 1);
+  if (p === '3month') { const d = new Date(n); d.setMonth(d.getMonth()-3); return d; }
+  return new Date(n.getFullYear(), 0, 1);
+}
+
+function initials(fn, ln) { return ((fn||'').charAt(0)+(ln||'').charAt(0)).toUpperCase(); }
+
+function avatarFallbackColor(name) {
+  const cols = ['#e74c3c','#3498db','#2ecc71','#f39c12','#9b59b6','#1abc9c','#e67e22','#e91e63'];
+  let h = 0; for (const c of name) h = (h*31+c.charCodeAt(0))&0x7fffffff;
+  return cols[h % cols.length];
+}
+
+function tierInfo(s) {
+  if (s >= 31) return {label:'Elite Monstar'};
+  if (s >= 26) return {label:'Rising Monstar'};
+  if (s >= 19) return {label:'Developing'};
+  return {label:'Needs Support'};
+}
+
+// ── DATA ──────────────────────────────────────────────────────────────────────
+let RAW = null, COACHES = null;
+
+async function loadRaw() {
+  const [uSnap,fbSnap,hcSnap,evSnap,attSnap,vtSnap,chkSnap,trSnap] = await Promise.all([
+    getDocs(collection(db,'users')),
+    getDocs(collection(db,'feedbacks')),
+    getDocs(collection(db,'head-coach-feedbacks')),
+    getDocs(collection(db,'events')),
+    getDocs(query(collection(db,'events'),where('sessionStatus','==','Attended'))),
+    getDocs(collection(db,'coach-viewed-activity-tabs')),
+    getDocs(collection(db,'children-checks')),
+    getDocs(collection(db,'education-trials'))
+  ]);
+  const users={},feedbacks=[],hcFbs=[],allEvents=[],attended=[],viewTabs=[],checks={},trials=[];
+  uSnap.forEach(d=>{users[d.id]={id:d.id,...d.data()};});
+  fbSnap.forEach(d=>feedbacks.push({id:d.id,...d.data()}));
+  hcSnap.forEach(d=>hcFbs.push({id:d.id,...d.data()}));
+  evSnap.forEach(d=>allEvents.push({id:d.id,...d.data()}));
+  attSnap.forEach(d=>attended.push({id:d.id,...d.data()}));
+  vtSnap.forEach(d=>viewTabs.push({id:d.id,...d.data()}));
+  chkSnap.forEach(d=>{ const x=d.data(); if(x.coachId){(checks[x.coachId]=checks[x.coachId]||[]).push(x);} });
+  trSnap.forEach(d=>trials.push({id:d.id,...d.data()}));
+  RAW={users,feedbacks,hcFbs,allEvents,attended,viewTabs,checks,trials};
+}
+
+function normaliseActivity(activity) {
+  if (!activity) return null;
+  const a = activity.toLowerCase().trim();
+  if (a.includes('sport')) return 'Sports';
+  if (a.includes('music')) return 'Music';
+  if (a.includes('yoga')) return 'Yoga';
+  if (a.includes('gymnastic')) return 'Gymnastics';
+  if (a.includes('sensory')) return 'Sensory';
+  return null;
+}
+
+function computeCoaches(period) {
+  const {users,feedbacks,hcFbs,allEvents,attended,viewTabs,checks,trials}=RAW;
+  const pStart=getPeriodStart(period), now=new Date();
+
+  const coachList = Object.values(users).filter(u=>{
+    if (u.role !== 'coach') return false;
+    if (u.status !== 'Active') return false;
+    const name=`${(u.firstName||'').trim()} ${(u.lastName||'').trim()}`.toLowerCase();
+    return !EXCLUDED.includes(name);
+  });
+
+  return coachList.map(coach=>{
+    const cid=coach.id;
+    const fullName=`${(coach.firstName||'').trim()} ${(coach.lastName||'').trim()}`;
+    const state=getState(coach);
+
+    const allFbs=feedbacks.filter(f=>f.coach&&f.coach.value===cid);
+    const periodFbs=allFbs.filter(f=>{
+      if(!f.created) return true;
+      const d=f.created.toDate?f.created.toDate():new Date(f.created);
+      return d>=pStart;
+    });
+
+    const allTimeAtt=attended.filter(e=>(e.coaches||[]).some(c=>c.value===cid)).length;
+    const periodEvs=allEvents.filter(e=>{
+      if(!e.start) return false;
+      const d=e.start.toDate?e.start.toDate():new Date(e.start);
+      return d>=pStart;
+    });
+    const myPeriodEvs=periodEvs.filter(e=>
+      (e.coaches||[]).some(c=>c.value===cid)||(e.missedCoaches||[]).some(c=>c.value===cid)
+    );
+    const attPeriod=myPeriodEvs.filter(e=>e.sessionStatus==='Attended'&&(e.coaches||[]).some(c=>c.value===cid)).length;
+    const missPeriod=myPeriodEvs.filter(e=>(e.missedCoaches||[]).some(c=>c.value===cid)).length;
+    const totalSess=attPeriod+missPeriod;
+    const attRate=totalSess>0?attPeriod/totalSess:null;
+
+    const hcPeriod=hcFbs.filter(f=>{
+      if(f.toCoach!==cid) return false;
+      if(!f.created) return true;
+      const d=f.created.toDate?f.created.toDate():new Date(f.created);
+      return d>=pStart;
+    });
+    const hcScores=hcPeriod.flatMap(f=>(f.feedbacks||[]).map(scoreHCWord)).filter(s=>s!==null);
+    const hcAvg=hcScores.length?hcScores.reduce((a,b)=>a+b,0)/hcScores.length:null;
+
+    const centreAvg=perCentreAvg(periodFbs);
+    const uniqueCentres=new Set(allFbs.map(f=>f.center).filter(Boolean)).size;
+
+    const p1=centreAvg!==null&&hcAvg!==null?(centreAvg*3+hcAvg)/4:centreAvg!==null?centreAvg:hcAvg;
+    const p2=centreAvg, p3=centreAvg, p5=centreAvg;
+
+    let p4=null;
+    if(attRate!==null){
+      let base=attRate>=.9?5:attRate>=.8?4:attRate>=.7?3:attRate>=.6?2:1;
+      let adj=0;
+      for(const f of periodFbs){
+        const tx=(f.desc||f.description||'').toLowerCase();
+        if(['always on time','very professional','reliable'].some(p=>tx.includes(p))) adj+=.2;
+        if(['arrived late','not prepared','cancelled last minute'].some(p=>tx.includes(p))) adj-=.3;
+      }
+      p4=Math.max(1,Math.min(5,base+adj));
+    } else if(centreAvg!==null) p4=centreAvg;
+
+    const myViews=viewTabs.filter(v=>v.coachId===cid&&v.tab==='VIDEOS');
+    let p6=myViews.length===0?0:(()=>{
+      const weeks=new Set(myViews.map(v=>v.date?Math.floor(v.date/(7*86400000)):null).filter(Boolean)).size;
+      const tw=Math.max(1,Math.round((now-pStart)/(7*86400000)));
+      const c=weeks/tw;
+      return c>=.5?5:c>=.4?4:c>=.3?3:c>=.2?2:1;
+    })();
+
+    const p7=attRate!==null?(attRate>=.9?5:attRate>=.8?4:attRate>=.7?3:attRate>=.6?2:0):null;
+
+    const myTrials=trials.filter(t=>(t.coaches||[]).some(c=>(c.value||c)===cid));
+    const converted=myTrials.filter(t=>t.converted===true).length;
+    const failed=myTrials.filter(t=>t.converted===false).length;
+    const trialBonus=converted-failed;
+
+    const pillars=[p1,p2,p3,p4,p5,p6,p7];
+    let core=0; for(const p of pillars) core+=(p!==null?p:2.5);
+    const totalScore=Math.min(35,Math.max(0,core+trialBonus));
+
+    let volBonus=0;
+    if(uniqueCentres>=15) volBonus+=4; else if(uniqueCentres>=10) volBonus+=3; else if(uniqueCentres>=6) volBonus+=2; else if(uniqueCentres>=3) volBonus+=1;
+    if(allFbs.length>=30) volBonus+=3; else if(allFbs.length>=20) volBonus+=2; else if(allFbs.length>=10) volBonus+=1;
+
+    let wwccExpired=false;
+    for(const chk of (checks[cid]||[])){
+      if(!chk.expiry||!chk.created) continue;
+      const exp=chk.expiry.toDate?chk.expiry.toDate():new Date(chk.expiry);
+      const cre=chk.created.toDate?chk.created.toDate():new Date(chk.created);
+      if((exp-cre)/86400000<7) continue;
+      if(exp<now){wwccExpired=true;break;}
+    }
+
+    const alerts=[];
+    if(wwccExpired) alerts.push('WWCC expired');
+    if(missPeriod>2) alerts.push(`${missPeriod} missed sessions this period`);
+    if(p6===0&&allTimeAtt>=20) alerts.push('No portal activity recorded');
+    if(p7!==null&&p7<=2) alerts.push(`Low attendance (${attRate!==null?Math.round(attRate*100):0}%)`);
+
+    // Programs: primary = categories on user doc, secondary = activity field on all events
+    const progs = new Set();
+    const userCats = coach.categories || [];
+    if (Array.isArray(userCats)) {
+      userCats.forEach(c => { if (c && typeof c === 'string') progs.add(c.trim()); });
+    }
+    // Fill from events activity field for coaches with empty categories
+    for (const e of allEvents) {
+      if ((e.coaches||[]).some(c=>c.value===cid)) {
+        const norm = normaliseActivity(e.activity);
+        if (norm) progs.add(norm);
+      }
+    }
+
+    const fiveStars=allFbs.filter(f=>window.scoreDescription(f.desc||f.description)===5).length;
+
+    return {
+      id:cid, firstName:coach.firstName||'', lastName:coach.lastName||'',
+      fullName, state, profilePic:coach.profilePic||null,
+      totalFeedbacks:allFbs.length, allTimeAtt, attRate, attPeriod, missPeriod,
+      pillars, totalScore:Math.round(totalScore*10)/10,
+      volBonus, uniqueCentres, trialBonus, converted, failed,
+      alerts, programs:[...progs], fiveStars, wwccExpired,
+      qualified:allFbs.length>=10&&allTimeAtt>=20
+    };
+  });
+}
+
+// ── PHOTO ELEMENT ─────────────────────────────────────────────────────────────
+function photoEl(coach, size=58) {
+  if (coach.profilePic) {
+    const img = document.createElement('img');
+    img.className = 'cc-photo';
+    img.style.width = size+'px';
+    img.style.height = size+'px';
+    img.src = coach.profilePic;
+    img.alt = coach.fullName;
+    img.onerror = () => {
+      const fb = fallbackEl(coach, size);
+      img.replaceWith(fb);
+    };
+    return img;
+  }
+  return fallbackEl(coach, size);
+}
+function fallbackEl(coach, size=58) {
+  const div = document.createElement('div');
+  div.className = 'cc-photo-fallback';
+  div.style.width = size+'px'; div.style.height = size+'px';
+  div.style.background = avatarFallbackColor(coach.fullName);
+  div.textContent = initials(coach.firstName, coach.lastName);
+  return div;
+}
+
+// ── RENDER LEADERBOARD ────────────────────────────────────────────────────────
+function renderLeaderboard() {
+  const search  = document.getElementById('lb-search').value.toLowerCase();
+  const state   = document.getElementById('lb-state').value;
+  const program = document.getElementById('lb-program').value;
+
+  let coaches = (COACHES||[]).filter(c=>c.qualified);
+  if (state)   coaches = coaches.filter(c=>c.state===state);
+  if (search)  coaches = coaches.filter(c=>c.fullName.toLowerCase().includes(search));
+  if (program) coaches = coaches.filter(c=>c.programs.includes(program));
+  coaches.sort((a,b)=>b.totalScore-a.totalScore);
+
+  document.getElementById('s-total').textContent   = coaches.length;
+  document.getElementById('s-elite').textContent   = coaches.filter(c=>c.totalScore>=31).length;
+  document.getElementById('s-support').textContent = coaches.filter(c=>c.totalScore<19).length;
+  const avg = coaches.length ? coaches.reduce((s,c)=>s+c.totalScore,0)/coaches.length : 0;
+  document.getElementById('s-avg').textContent = avg.toFixed(1);
+
+  const el = document.getElementById('lb-content');
+  if (!coaches.length) { el.innerHTML='<div class="empty">No qualified coaches match your filters</div>'; return; }
+
+  const lb = document.createElement('div');
+  lb.className = 'lb';
+
+  // Pre-compute tier sizes for fade calculation
+  const tierCounts = {elite:0, rising:0, developing:0, support:0};
+  coaches.forEach(c => {
+    const tk = c.totalScore>=31?'elite':c.totalScore>=26?'rising':c.totalScore>=19?'developing':'support';
+    tierCounts[tk]++;
+  });
+  const tierRankIdx = {elite:0, rising:0, developing:0, support:0};
+  let lastTierKey = null;
+
+  coaches.forEach((coach, i) => {
+    const rank = i + 1;
+    const tier = tierInfo(coach.totalScore);
+    const tierKey = coach.totalScore>=31?'elite':coach.totalScore>=26?'rising':coach.totalScore>=19?'developing':'support';
+
+    // Tier separator label
+    if (tierKey !== lastTierKey) {
+      lastTierKey = tierKey;
+      const sep = document.createElement('div');
+      sep.style.cssText = 'font-size:11px;font-weight:900;letter-spacing:1px;text-transform:uppercase;color:rgba(255,255,255,0.75);padding:10px 4px 4px;';
+      sep.textContent = tier.label + 's';
+      lb.appendChild(sep);
+    }
+
+    const rankWithinTier = tierRankIdx[tierKey]++;
+    const tierSize = tierCounts[tierKey];
+    const bg = rowColor(coach.totalScore, rankWithinTier, tierSize);
+    const attStr = coach.attRate!==null ? Math.round(coach.attRate*100)+'%' : 'N/A';
+    const comp   = coach.pillars[5]===0 ? 'No data' : coach.pillars[5]!==null ? `${coach.pillars[5].toFixed(1)}/5` : 'No data';
+    const trial  = coach.trialBonus>0?`+${coach.trialBonus}`:coach.trialBonus<0?`${coach.trialBonus}`:'0';
+
+    const card = document.createElement('div');
+    card.className = 'cc';
+    card.style.background = bg;
+    card.setAttribute('data-rank', rank <= 9 ? rank : 'high');
+    card.setAttribute('data-tier', tierKey);
+
+    // Rank number
+    const rankEl = document.createElement('div');
+    rankEl.className = 'cc-rank-num';
+    rankEl.textContent = rank;
+    const medalColor = rank === 1 ? '#E8B84B' : rank === 2 ? '#C0C0C0' : rank === 3 ? '#CD7F32' : null;
+    if (medalColor) card.style.setProperty('--medal', medalColor);
+
+    // Photo
+    const photo = photoEl(coach, 58);
+
+    // Info
+    const infoEl = document.createElement('div');
+    infoEl.className = 'cc-info';
+
+    const alertBadge = coach.alerts.length ? `<span class="cc-tag cc-tag-alert">⚠ ${coach.alerts.length} alert${coach.alerts.length>1?'s':''}</span>` : '';
+    const volBadge   = coach.volBonus>0 ? `<span class="cc-tag cc-tag-vol">+${coach.volBonus} vol</span>` : '';
+    const wwccBadge  = coach.wwccExpired ? `<span class="cc-tag cc-tag-wwcc">WWCC!</span>` : '';
+    const progTags   = coach.programs.slice(0,2).map(p=>`<span class="cc-tag">${p}</span>`).join('');
+
+    infoEl.innerHTML = `
+      <div class="cc-name">${coach.fullName}</div>
+      <div class="cc-meta">
+        <span class="cc-state">${coach.state}</span>
+        ${progTags}${alertBadge}${volBadge}${wwccBadge}
+      </div>
+    `;
+
+    // Score
+    const scoreEl = document.createElement('div');
+    scoreEl.className = 'cc-score-area';
+    scoreEl.innerHTML = `
+      <div><span class="cc-score-num">${coach.totalScore.toFixed(1)}</span><span class="cc-score-denom">/35</span></div>
+      <span class="tier-badge">${tier.label}</span>
+    `;
+
+    // Chevron
+    const chev = document.createElement('div');
+    chev.style.cssText = 'color:rgba(255,255,255,0.7);font-size:11px;padding-right:12px;flex-shrink:0;transition:transform .2s';
+    chev.textContent = '▼';
+
+    // Inline stats + pillar expand
+    const statsEl = document.createElement('div');
+    statsEl.className = 'cc-inline-stats';
+    statsEl.innerHTML = `
+      <span>Attendance <b>${attStr}</b></span>
+      <span>Compliance <b>${comp}</b></span>
+      <span>Trials <b>${trial}</b></span>
+      <span>Reviews <b>${coach.totalFeedbacks}</b></span>
+      <span>Centres <b>${coach.uniqueCentres}</b></span>
+    `;
+
+    const expandEl = document.createElement('div');
+    expandEl.className = 'cc-expand';
+    expandEl.innerHTML = PILLAR_NAMES.map((nm,idx)=>{
+      const val = coach.pillars[idx];
+      const noData = val === null;
+      const w = noData ? 0 : (val/5)*100;
+      return `<div class="prow">
+        <div class="pname">${nm}</div>
+        <div class="pbar-bg"><div class="pbar-fill" style="width:${w}%"></div></div>
+        <div class="pscore">${noData?'<span class="nodata">No data</span>':`${val.toFixed(1)}/5`}</div>
+      </div>`;
+    }).join('');
+
+    // Wrap top row
+    const topRow = document.createElement('div');
+    topRow.style.cssText = 'display:flex;align-items:center;gap:0;width:100%;cursor:pointer;';
+    topRow.appendChild(rankEl);
+    topRow.appendChild(photo);
+    topRow.appendChild(infoEl);
+    topRow.appendChild(scoreEl);
+    topRow.appendChild(chev);
+
+    card.appendChild(topRow);
+    card.appendChild(statsEl);
+    card.appendChild(expandEl);
+
+    topRow.addEventListener('click', () => {
+      const open = card.classList.toggle('open');
+      chev.style.transform = open ? 'rotate(180deg)' : '';
+    });
+
+    lb.appendChild(card);
+  });
+
+  el.innerHTML = '';
+  el.appendChild(lb);
+}
+
+// ── RENDER DEVELOPING ─────────────────────────────────────────────────────────
+function renderDeveloping() {
+  const search = document.getElementById('dev-search').value.toLowerCase();
+  const state  = document.getElementById('dev-state').value;
+  let coaches = (COACHES||[]).filter(c=>!c.qualified);
+  if (state)  coaches = coaches.filter(c=>c.state===state);
+  if (search) coaches = coaches.filter(c=>c.fullName.toLowerCase().includes(search));
+  // Sort by guide score desc (best developing coaches first)
+  coaches.sort((a,b)=>b.totalScore-a.totalScore);
+
+  const el = document.getElementById('dev-content');
+  if (!coaches.length) { el.innerHTML='<div class="empty">No developing coaches found</div>'; return; }
+
+  const lb = document.createElement('div');
+  lb.className = 'lb';
+
+  // Compute tier sizes within developing for fade
+  const tierCounts = {elite:0, rising:0, developing:0, support:0};
+  coaches.forEach(c => {
+    const tk = c.totalScore>=31?'elite':c.totalScore>=26?'rising':c.totalScore>=19?'developing':'support';
+    tierCounts[tk]++;
+  });
+  const tierRankIdx = {elite:0, rising:0, developing:0, support:0};
+
+  coaches.forEach((coach, i) => {
+    const rank = i + 1;
+    const tierKey = coach.totalScore>=31?'elite':coach.totalScore>=26?'rising':coach.totalScore>=19?'developing':'support';
+    const rankWithinTier = tierRankIdx[tierKey]++;
+    const tierSize = tierCounts[tierKey];
+    const bg = rowColor(coach.totalScore, rankWithinTier, tierSize);
+
+    const fbPct  = Math.min(100,(coach.totalFeedbacks/10)*100);
+    const sesPct = Math.min(100,(coach.allTimeAtt/20)*100);
+    const attStr = coach.attRate!==null ? Math.round(coach.attRate*100)+'%' : 'N/A';
+    const progTags = coach.programs.slice(0,2).map(p=>`<span class="cc-tag">${p}</span>`).join('');
+
+    const card = document.createElement('div');
+    card.className = 'cc';
+    card.style.background = bg;
+    card.setAttribute('data-rank', rank <= 9 ? rank : 'high');
+
+    const rankEl = document.createElement('div');
+    rankEl.className = 'cc-rank-num';
+    rankEl.textContent = rank;
+
+    const photo = photoEl(coach, 58);
+
+    const infoEl = document.createElement('div');
+    infoEl.className = 'cc-info';
+    infoEl.innerHTML = `
+      <div class="cc-name">${coach.fullName}</div>
+      <div class="cc-meta">
+        <span class="cc-state">${coach.state}</span>
+        ${progTags}
+        <span class="cc-tag" style="background:rgba(0,0,0,0.2)">Developing</span>
+      </div>
+    `;
+
+    const scoreEl = document.createElement('div');
+    scoreEl.className = 'cc-score-area';
+    scoreEl.innerHTML = `
+      <div><span class="cc-score-num">${coach.totalScore.toFixed(1)}</span><span class="cc-score-denom">/35</span></div>
+      <span class="tier-badge" style="background:rgba(0,0,0,0.2)">Guide score</span>
+    `;
+
+    const chev = document.createElement('div');
+    chev.style.cssText = 'color:rgba(255,255,255,0.7);font-size:11px;padding-right:12px;flex-shrink:0;transition:transform .2s';
+    chev.textContent = '▼';
+
+    // Inline stats row with progress bars
+    const statsEl = document.createElement('div');
+    statsEl.className = 'cc-inline-stats';
+    statsEl.innerHTML = `
+      <span>Attendance <b>${attStr}</b></span>
+      <span>Reviews <b>${coach.totalFeedbacks}/10</b></span>
+      <span>Sessions <b>${coach.allTimeAtt}/20</b></span>
+      <span>Centres <b>${coach.uniqueCentres}</b></span>
+    `;
+
+    // Expand section — progress bars + pillars
+    const expandEl = document.createElement('div');
+    expandEl.className = 'cc-expand';
+    expandEl.innerHTML = `
+      <div style="margin-bottom:10px;padding-bottom:10px;border-bottom:1px solid rgba(255,255,255,0.15);">
+        <div class="prow">
+          <div class="pname">Feedbacks to qualify</div>
+          <div class="pbar-bg"><div class="pbar-fill" style="width:${fbPct}%"></div></div>
+          <div class="pscore">${coach.totalFeedbacks}/10</div>
+        </div>
+        <div class="prow">
+          <div class="pname">Sessions to qualify</div>
+          <div class="pbar-bg"><div class="pbar-fill" style="width:${sesPct}%"></div></div>
+          <div class="pscore">${coach.allTimeAtt}/20</div>
+        </div>
+      </div>
+      ${PILLAR_NAMES.map((nm,idx)=>{
+        const val = coach.pillars[idx];
+        const noData = val === null;
+        const w = noData ? 0 : (val/5)*100;
+        return `<div class="prow">
+          <div class="pname">${nm}</div>
+          <div class="pbar-bg"><div class="pbar-fill" style="width:${w}%"></div></div>
+          <div class="pscore">${noData?'<span class="nodata">No data</span>':`${val.toFixed(1)}/5`}</div>
+        </div>`;
+      }).join('')}
+    `;
+
+    const topRow = document.createElement('div');
+    topRow.style.cssText = 'display:flex;align-items:center;gap:0;width:100%;cursor:pointer;';
+    topRow.appendChild(rankEl);
+    topRow.appendChild(photo);
+    topRow.appendChild(infoEl);
+    topRow.appendChild(scoreEl);
+    topRow.appendChild(chev);
+
+    card.appendChild(topRow);
+    card.appendChild(statsEl);
+    card.appendChild(expandEl);
+
+    topRow.addEventListener('click', () => {
+      const open = card.classList.toggle('open');
+      chev.style.transform = open ? 'rotate(180deg)' : '';
+    });
+
+    lb.appendChild(card);
+  });
+
+  el.innerHTML = '';
+  el.appendChild(lb);
+}
+
+// ── RENDER ALERTS ─────────────────────────────────────────────────────────────
+function renderAlerts() {
+  const coaches=(COACHES||[]).filter(c=>c.alerts.length>0).sort((a,b)=>b.alerts.length-a.alerts.length);
+  const el=document.getElementById('alert-content');
+  if(!coaches.length){el.innerHTML='<div class="empty">✓ No active alerts</div>';return;}
+  const grid=document.createElement('div'); grid.className='alert-grid';
+  coaches.forEach(c=>{
+    const card=document.createElement('div'); card.className='alert-card';
+    const photo=photoEl(c,36);
+    const nameDiv=document.createElement('div'); nameDiv.className='alert-name';
+    nameDiv.appendChild(photo);
+    nameDiv.innerHTML+=` ${c.fullName} <span class="cc-tag">${c.state}</span>`;
+    const list=document.createElement('div'); list.className='alert-list';
+    list.innerHTML=c.alerts.map(a=>`<div class="alert-item"><span>•</span>${a}</div>`).join('');
+    card.appendChild(nameDiv); card.appendChild(list);
+    grid.appendChild(card);
+  });
+  el.innerHTML=''; el.appendChild(grid);
+}
+
+// ── RENDER REWARDS ────────────────────────────────────────────────────────────
+function renderRewards() {
+  const el=document.getElementById('reward-content');
+  el.innerHTML=`<div class="rewards-wrap"><p class="rewards-intro">Coaches who accumulate 10 or more five-star reviews earn a $300 cash reward.</p><div class="reward-grid" id="rg"></div></div>`;
+  const coaches=(COACHES||[]).filter(c=>c.fiveStars>=5).sort((a,b)=>b.fiveStars-a.fiveStars);
+  if(!coaches.length){document.getElementById('rg').innerHTML='<div class="empty">No coaches near the reward threshold yet</div>';return;}
+  const rg=document.getElementById('rg');
+  coaches.forEach(c=>{
+    const filled=Math.min(c.fiveStars,10);
+    const stars='★'.repeat(filled)+'☆'.repeat(10-filled);
+    const card=document.createElement('div'); card.className='rcard';
+    card.innerHTML=`
+      <div class="rcard-name">${c.fullName}</div>
+      <div class="rcard-count">${c.fiveStars} five-star reviews</div>
+      <div class="rcard-stars">${stars}</div>
+      ${c.fiveStars>=10?'<div class="rcard-eligible">✓ $300 reward eligible</div>':`<div class="rcard-progress">${10-c.fiveStars} more to go</div>`}
+    `;
+    rg.appendChild(card);
+  });
+}
+
+let autoRefreshTimer = null;
+const REFRESH_INTERVAL = 10 * 60 * 1000; // 10 minutes
+
+function updateLastUpdatedLabel() {
+  const el = document.getElementById('last-updated');
+  if (!el) return;
+  let seconds = 0;
+  clearInterval(window._lastUpdatedTick);
+  window._lastUpdatedTick = setInterval(() => {
+    seconds += 10;
+    if (seconds < 60) el.textContent = 'Updated just now';
+    else if (seconds < 120) el.textContent = 'Updated 1 min ago';
+    else el.textContent = `Updated ${Math.floor(seconds/60)} mins ago`;
+  }, 10000);
+  el.textContent = 'Updated just now';
+}
+
+async function refreshData() {
+  const btn = document.getElementById('refresh-btn');
+  if (btn) btn.classList.add('spinning');
+  try {
+    await loadRaw();
+    renderAll();
+    updateLastUpdatedLabel();
+    startAutoRefresh();
+    updateLastUpdatedLabel();
+  } finally {
+    if (btn) btn.classList.remove('spinning');
+  }
+}
+
+function startAutoRefresh() {
+  clearInterval(autoRefreshTimer);
+  autoRefreshTimer = setInterval(() => {
+    refreshData();
+  }, REFRESH_INTERVAL);
+}
+
+function renderAll() {
+  COACHES = computeCoaches(document.getElementById('lb-period').value);
+  ['lb-content','dev-content','alert-content','reward-content'].forEach(id=>document.getElementById(id).innerHTML='');
+  renderLeaderboard(); renderDeveloping(); renderAlerts(); renderRewards();
+}
+
+// ── AUTH ──────────────────────────────────────────────────────────────────────
+onAuthStateChanged(auth, async user => {
+  if (user) {
+    document.getElementById('login-screen').style.display='none';
+    document.getElementById('app').style.display='block';
+    document.getElementById('hdr-email').textContent=user.email;
+    document.getElementById('lb-content').innerHTML='<div class="loading"><div class="spinner"></div><p>Loading coach data…</p></div>';
+    await loadRaw();
+    renderAll();
+    updateLastUpdatedLabel();
+    startAutoRefresh();
+  } else {
+    document.getElementById('login-screen').style.display='flex';
+    document.getElementById('app').style.display='none';
+  }
+});
+
+document.getElementById('login-btn').addEventListener('click', async ()=>{
+  const err=document.getElementById('login-err');
+  err.style.display='none';
+  try { await signInWithEmailAndPassword(auth,document.getElementById('em').value,document.getElementById('pw').value); }
+  catch(e) { err.textContent='Invalid email or password.'; err.style.display='block'; }
+});
+document.getElementById('pw').addEventListener('keydown',e=>{ if(e.key==='Enter') document.getElementById('login-btn').click(); });
+document.getElementById('refresh-btn').addEventListener('click', refreshData);
+document.getElementById('signout-btn').addEventListener('click',()=>{ clearInterval(autoRefreshTimer); signOut(auth); });
+
+// ── TABS ──────────────────────────────────────────────────────────────────────
+document.querySelectorAll('.nav-tab').forEach(btn=>{
+  btn.addEventListener('click',()=>{
+    document.querySelectorAll('.nav-tab').forEach(t=>t.classList.remove('active'));
+    btn.classList.add('active');
+    const tab=btn.dataset.tab;
+    ['leaderboard','developing','alerts','rewards'].forEach(t=>{
+      document.getElementById('tab-'+t).style.display=t===tab?'block':'none';
+    });
+  });
+});
+
+// ── FILTER EVENTS ─────────────────────────────────────────────────────────────
+// Need Support pill click — scroll to first needs-support card
+document.getElementById('need-support-pill').addEventListener('click', () => {
+  // Make sure leaderboard tab is active
+  document.querySelectorAll('.nav-tab').forEach(t=>t.classList.remove('active'));
+  document.querySelector('[data-tab="leaderboard"]').classList.add('active');
+  ['leaderboard','developing','alerts','rewards'].forEach(t=>{
+    document.getElementById('tab-'+t).style.display=t==='leaderboard'?'block':'none';
+  });
+  // Scroll to first needs-support card
+  setTimeout(() => {
+    const el = document.querySelector('.cc[data-tier="support"]');
+    if (el) el.scrollIntoView({behavior:'smooth', block:'center'});
+  }, 100);
+});
+
+['lb-search','lb-state','lb-program'].forEach(id=>{
+  document.getElementById(id).addEventListener('input',()=>{ if(COACHES) renderLeaderboard(); });
+});
+document.getElementById('lb-period').addEventListener('change',()=>{ if(RAW) renderAll(); });
+['dev-search','dev-state'].forEach(id=>{
+  document.getElementById(id).addEventListener('input',()=>{ if(COACHES) renderDeveloping(); });
+});
+</script>
+</body>
+</html>

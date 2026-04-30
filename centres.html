@@ -1,0 +1,691 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Mini Monstars — Centres</title>
+<link href="https://fonts.googleapis.com/css2?family=Nunito:wght@400;600;700;800;900&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.9.4/leaflet.min.css"/>
+<style>
+:root {
+  --sky: #29ABE2;
+  --yellow: #FFD700;
+  --yellow-dark: #e6b800;
+  --red: #E31E24;
+  --font: 'Nunito', sans-serif;
+}
+*, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+html, body { height: 100%; font-family: var(--font); background: var(--sky); overflow-x: hidden; }
+
+body::before {
+  content: ''; position: fixed; inset: 0; z-index: 0; pointer-events: none;
+  background:
+    linear-gradient(135deg, transparent 40%, rgba(255,215,0,0.15) 40%, rgba(255,215,0,0.15) 47%, transparent 47%),
+    linear-gradient(225deg, transparent 30%, rgba(255,215,0,0.12) 30%, rgba(255,215,0,0.12) 37%, transparent 37%);
+}
+
+/* LOGIN */
+#login-screen { position:fixed; inset:0; z-index:1000; display:flex; align-items:center; justify-content:center; }
+.login-box { background:rgba(255,255,255,0.97); border-radius:24px; padding:40px 36px; width:340px; box-shadow:0 20px 60px rgba(0,0,0,0.3); text-align:center; }
+.login-logo { font-size:26px; font-weight:900; color:var(--red); margin-bottom:4px; }
+.login-sub  { font-size:12px; color:#888; margin-bottom:24px; font-weight:600; }
+.login-box label { display:block; text-align:left; font-size:11px; font-weight:700; color:#666; margin-bottom:4px; text-transform:uppercase; letter-spacing:.5px; }
+.login-box input { display:block; width:100%; border:2px solid #e8e8e8; border-radius:10px; padding:9px 13px; font-size:14px; margin-bottom:12px; font-family:var(--font); outline:none; transition:border-color .15s; }
+.login-box input:focus { border-color:var(--sky); }
+.login-btn { width:100%; background:var(--yellow); color:#333; border:none; border-radius:50px; padding:12px; font-size:15px; font-weight:900; cursor:pointer; font-family:var(--font); box-shadow:0 4px 0 var(--yellow-dark); transition:transform .1s; }
+.login-btn:hover { transform:translateY(-1px); }
+.login-err { color:var(--red); font-size:12px; margin-top:8px; font-weight:700; display:none; }
+
+/* APP LAYOUT */
+#app { display:none; position:relative; z-index:1; height:100vh; display:none; flex-direction:column; }
+
+/* HEADER */
+.hdr { display:flex; align-items:center; gap:10px; padding:10px 20px; flex-shrink:0; }
+.hdr-logo { font-size:18px; font-weight:900; color:#fff; text-shadow:0 2px 4px rgba(0,0,0,0.2); }
+.hdr-logo span { color:var(--yellow); }
+.hdr-space { flex:1; }
+.hdr-updated { font-size:11px; color:rgba(255,255,255,0.6); font-weight:600; }
+.hdr-refresh { background:rgba(255,255,255,0.2); border:2px solid rgba(255,255,255,0.35); border-radius:50%; color:#fff; width:30px; height:30px; font-size:15px; cursor:pointer; display:flex; align-items:center; justify-content:center; transition:background .15s; }
+.hdr-refresh:hover { background:rgba(255,255,255,0.3); }
+.hdr-refresh.spinning { animation:spin .7s linear infinite; }
+@keyframes spin { to { transform:rotate(360deg); } }
+.hdr-signout { background:rgba(255,255,255,0.2); border:2px solid rgba(255,255,255,0.35); border-radius:50px; color:#fff; padding:5px 14px; font-size:12px; font-weight:700; cursor:pointer; font-family:var(--font); }
+
+/* HERO + PILLS */
+.top-bar { flex-shrink:0; padding:0 20px 10px; }
+.hero-row { display:flex; align-items:baseline; gap:12px; margin-bottom:10px; flex-wrap:wrap; }
+.hero-num { font-size:52px; font-weight:900; color:#fff; line-height:1; text-shadow:0 3px 6px rgba(0,0,0,0.2); }
+.hero-label { font-size:16px; font-weight:800; color:rgba(255,255,255,0.85); }
+
+.state-pills { display:flex; gap:7px; flex-wrap:wrap; margin-bottom:8px; }
+.spill {
+  background:var(--yellow); border-radius:50px; padding:7px 16px;
+  font-size:13px; font-weight:900; color:#5a3a00;
+  box-shadow:0 3px 0 var(--yellow-dark); cursor:pointer;
+  transition:transform .1s, box-shadow .1s; border:2px solid transparent;
+}
+.spill:hover { transform:translateY(-1px); box-shadow:0 4px 0 var(--yellow-dark); }
+.spill.active { background:#fff; color:var(--red); border-color:var(--red); box-shadow:0 3px 0 #a00; }
+.spill-all { background:rgba(255,255,255,0.25); color:#fff; box-shadow:0 3px 0 rgba(0,0,0,0.12); }
+.spill-all.active { background:#fff; color:var(--sky); border-color:var(--sky); box-shadow:0 3px 0 #1a8bbf; }
+
+.prog-pills { display:flex; gap:7px; flex-wrap:wrap; }
+.ppill {
+  border-radius:50px; padding:6px 14px; font-size:12px; font-weight:900;
+  color:#fff; cursor:pointer; border:2px solid rgba(255,255,255,0.3);
+  transition:transform .1s, border-color .15s; box-shadow:0 3px 0 rgba(0,0,0,0.15);
+}
+.ppill:hover { transform:translateY(-1px); }
+.ppill.active { border-color:#fff; box-shadow:0 3px 0 rgba(0,0,0,0.3); }
+.ppill-sports    { background:#E31E24; }
+.ppill-music     { background:#9C27B0; }
+.ppill-gymnastics{ background:#F7941D; }
+.ppill-yoga      { background:#4CAF50; }
+.ppill-sensory   { background:#29ABE2; border-color:rgba(255,255,255,0.5); }
+
+/* BODY SPLIT */
+.body-split { display:flex; flex:1; overflow:hidden; gap:0; }
+
+/* MAP */
+#map { flex:1; min-width:0; position:relative; z-index:10; }
+.leaflet-container { background:#a8d8ea !important; }
+
+/* Custom marker colours */
+.pin-sports     { background:#E31E24; }
+.pin-music      { background:#9C27B0; }
+.pin-gymnastics { background:#F7941D; }
+.pin-yoga       { background:#4CAF50; }
+.pin-sensory    { background:#29ABE2; }
+.pin-multi      { background:#333; }
+
+/* SIDEBAR */
+.sidebar {
+  width:340px; flex-shrink:0; overflow-y:auto;
+  background:rgba(0,0,0,0.15); border-left:1px solid rgba(255,255,255,0.15);
+  display:flex; flex-direction:column;
+}
+.sidebar-search { padding:10px 12px; flex-shrink:0; border-bottom:1px solid rgba(255,255,255,0.1); }
+.sidebar-search input {
+  width:100%; background:rgba(255,255,255,0.2); border:2px solid rgba(255,255,255,0.3);
+  border-radius:50px; color:#fff; padding:7px 14px; font-size:12px; font-weight:700;
+  font-family:var(--font); outline:none;
+}
+.sidebar-search input::placeholder { color:rgba(255,255,255,0.55); }
+.sidebar-count { padding:8px 12px; font-size:11px; font-weight:900; color:rgba(255,255,255,0.6); text-transform:uppercase; letter-spacing:.6px; flex-shrink:0; }
+
+.centre-list { flex:1; overflow-y:auto; padding:0 8px 8px; }
+.citem {
+  background:rgba(255,255,255,0.15); border:1.5px solid rgba(255,255,255,0.2);
+  border-radius:12px; padding:10px 12px; margin-bottom:6px; cursor:pointer;
+  transition:background .15s, border-color .15s, transform .1s;
+}
+.citem:hover { background:rgba(255,255,255,0.25); border-color:rgba(255,255,255,0.45); transform:translateX(2px); }
+.citem.new-center { border-color:rgba(247,195,26,0.6); }
+.citem.selected { border-color:#fff; background:rgba(255,255,255,0.3); }
+.citem-name { font-size:13px; font-weight:800; color:#fff; line-height:1.2; margin-bottom:3px; }
+.citem-meta { font-size:11px; color:rgba(255,255,255,0.65); font-weight:600; margin-bottom:5px; }
+.citem-tags { display:flex; gap:4px; flex-wrap:wrap; }
+.ctag { font-size:9px; font-weight:900; padding:2px 7px; border-radius:8px; color:#fff; }
+.ctag-state      { background:rgba(255,255,255,0.25); }
+.ctag-new        { background:rgba(247,195,26,0.5); }
+.ctag-ongoing    { background:rgba(76,175,80,0.5); }
+.ctag-sports     { background:#E31E24; }
+.ctag-music      { background:#9C27B0; }
+.ctag-gymnastics { background:#F7941D; }
+.ctag-yoga       { background:#4CAF50; }
+.ctag-sensory    { background:#29ABE2; }
+.ctag-nocoach    { background:rgba(227,30,36,0.5); }
+
+/* DETAIL PANEL */
+.detail-overlay { position:fixed; inset:0; z-index:600; display:none; align-items:center; justify-content:center; background:rgba(0,0,0,0.55); padding:20px; }
+.detail-overlay.open { display:flex; }
+.detail-panel { background:linear-gradient(135deg,#1a3060,#0f2040); border:2px solid var(--yellow); border-radius:24px; padding:24px; width:100%; max-width:480px; max-height:85vh; overflow-y:auto; position:relative; }
+.detail-close { position:absolute; top:14px; right:16px; background:rgba(255,255,255,0.1); border:none; border-radius:50%; color:#fff; width:30px; height:30px; font-size:16px; cursor:pointer; font-family:var(--font); }
+.detail-name { font-size:19px; font-weight:900; color:#fff; margin-bottom:3px; padding-right:36px; line-height:1.2; }
+.detail-addr { font-size:11px; color:rgba(255,255,255,0.55); margin-bottom:14px; font-weight:600; }
+.drow { display:flex; justify-content:space-between; align-items:center; padding:7px 0; border-bottom:1px solid rgba(255,255,255,0.07); font-size:12px; gap:8px; }
+.drow:last-child { border-bottom:none; }
+.dlabel { color:rgba(255,255,255,0.55); font-weight:700; flex-shrink:0; }
+.dval { color:#fff; font-weight:800; text-align:right; }
+.dtags { display:flex; gap:4px; flex-wrap:wrap; justify-content:flex-end; }
+
+/* LOADING */
+.loading { position:absolute; inset:0; display:flex; flex-direction:column; align-items:center; justify-content:center; z-index:500; }
+.spinner { width:36px; height:36px; border:4px solid rgba(255,255,255,0.2); border-top-color:#fff; border-radius:50%; animation:spin .7s linear infinite; margin-bottom:12px; }
+.loading p { color:rgba(255,255,255,0.85); font-weight:700; font-size:14px; }
+
+/* Leaflet popup override */
+.leaflet-popup-content-wrapper { border-radius:12px !important; border:2px solid var(--yellow) !important; background:#1a3060 !important; color:#fff !important; font-family:var(--font) !important; box-shadow:0 8px 24px rgba(0,0,0,0.4) !important; }
+.leaflet-popup-content { margin:12px 16px !important; font-size:13px !important; }
+.leaflet-popup-tip { background:#1a3060 !important; }
+.leaflet-popup-close-button { color:#fff !important; font-size:16px !important; }
+.popup-name { font-size:14px; font-weight:900; color:#fff; margin-bottom:3px; }
+.popup-meta { font-size:11px; color:rgba(255,255,255,0.65); font-weight:600; margin-bottom:6px; }
+.popup-tags { display:flex; gap:4px; flex-wrap:wrap; margin-bottom:6px; }
+.popup-coach { font-size:11px; color:rgba(255,255,255,0.8); font-weight:700; }
+.popup-btn { display:inline-block; margin-top:8px; background:var(--yellow); color:#333; border:none; border-radius:20px; padding:5px 14px; font-size:11px; font-weight:900; cursor:pointer; font-family:var(--font); }
+
+@media(max-width:700px) {
+  .body-split { flex-direction:column; }
+  #map { flex:none; height:55vw; min-height:220px; }
+  .sidebar { width:100%; height:calc(100vh - 220px - 140px); }
+}
+</style>
+</head>
+<body>
+
+<!-- LOGIN -->
+<div id="login-screen">
+  <div class="login-box">
+    <div class="login-logo">MINI MONST★RS</div>
+    <div class="login-sub">Centres Dashboard</div>
+    <label>Email</label>
+    <input type="email" id="em" placeholder="admin@minimonstars.net" autocomplete="email">
+    <label>Password</label>
+    <input type="password" id="pw" placeholder="••••••••" autocomplete="current-password">
+    <button class="login-btn" id="login-btn">Sign in</button>
+    <div class="login-err" id="login-err"></div>
+  </div>
+</div>
+
+<!-- APP -->
+<div id="app">
+  <!-- HEADER -->
+  <div class="hdr">
+    <div class="hdr-logo">MINI MONST<span>★</span>RS</div>
+    <div class="hdr-space"></div>
+    <span class="hdr-updated" id="last-updated"></span>
+    <button class="hdr-refresh" id="refresh-btn" title="Refresh">↻</button>
+    <button class="hdr-signout" id="signout-btn">Sign out</button>
+  </div>
+
+  <!-- TOP BAR -->
+  <div class="top-bar">
+    <div class="hero-row">
+      <div class="hero-num" id="hero-num">—</div>
+      <div class="hero-label" id="hero-label">Active Centres</div>
+    </div>
+    <div class="state-pills" id="state-pills"></div>
+    <div class="prog-pills" id="prog-pills"></div>
+  </div>
+
+  <!-- BODY -->
+  <div class="body-split">
+    <div id="map">
+      <div class="loading" id="map-loading"><div class="spinner"></div><p>Loading centres…</p></div>
+    </div>
+    <div class="sidebar">
+      <div class="sidebar-search">
+        <input type="text" id="search-input" placeholder="Search centres or coaches…">
+      </div>
+      <div class="sidebar-count" id="sidebar-count"></div>
+      <div class="centre-list" id="centre-list"></div>
+    </div>
+  </div>
+</div>
+
+<!-- DETAIL -->
+<div class="detail-overlay" id="detail-overlay">
+  <div class="detail-panel">
+    <button class="detail-close" id="detail-close">✕</button>
+    <div id="detail-content"></div>
+  </div>
+</div>
+
+<script src="https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.9.4/leaflet.min.js"></script>
+<script type="module">
+import { initializeApp } from 'https://www.gstatic.com/firebasejs/10.12.5/firebase-app.js';
+import { getAuth, signInWithEmailAndPassword, signOut, onAuthStateChanged } from 'https://www.gstatic.com/firebasejs/10.12.5/firebase-auth.js';
+import { getFirestore, collection, getDocs } from 'https://www.gstatic.com/firebasejs/10.12.5/firebase-firestore.js';
+
+const app = initializeApp({
+  apiKey: "AIzaSyCpLhBjI2qAwQ6zDWdLXRcR2WqVbOG3kug",
+  authDomain: "mini-monstars-au.firebaseapp.com",
+  projectId: "mini-monstars-au",
+  storageBucket: "mini-monstars-au.appspot.com",
+  messagingSenderId: "1020303504267",
+  appId: "1:1020303504267:web:9d7417231c76b0f351b58e"
+});
+const auth = getAuth(app);
+const db   = getFirestore(app);
+
+const ACTIVE_STATUSES = ['New Center', 'Ongoing'];
+const PROGRAMS = ['Sports','Music','Gymnastics','Yoga','Sensory'];
+const PROG_COLORS = { Sports:'#E31E24', Music:'#9C27B0', Gymnastics:'#F7941D', Yoga:'#4CAF50', Sensory:'#29ABE2' };
+
+let RAW = [];
+let MAP = null;
+let markers = [];
+let markerLayer = null;
+let activeState = 'ALL';
+let activeProg  = '';
+let autoTimer   = null;
+let selectedId  = null;
+
+function normaliseActivity(a) {
+  if (!a) return null;
+  const l = a.toLowerCase();
+  if (l.includes('sport')) return 'Sports';
+  if (l.includes('music')) return 'Music';
+  if (l.includes('gymnastic')) return 'Gymnastics';
+  if (l.includes('yoga')) return 'Yoga';
+  if (l.includes('sensory')) return 'Sensory';
+  return null;
+}
+
+// ── DATA ──────────────────────────────────────────────────────────────────────
+async function loadRaw() {
+  const [cSnap, eSnap] = await Promise.all([
+    getDocs(collection(db,'education-centers')),
+    getDocs(collection(db,'events'))
+  ]);
+
+  const centres = [];
+  cSnap.forEach(d => centres.push({id:d.id,...d.data()}));
+
+  // Index events by centre
+  const evByCenter = {};
+  eSnap.forEach(d => {
+    const e = {id:d.id,...d.data()};
+    if (!e.educationCenter) return;
+    (evByCenter[e.educationCenter] = evByCenter[e.educationCenter]||[]).push(e);
+  });
+
+  const now = new Date();
+
+  RAW = centres
+    .filter(c => ACTIVE_STATUSES.includes(c.status) || !c.status)
+    .map(c => {
+      // Only count New Center / Ongoing type events
+      const evs = (evByCenter[c.id]||[]).filter(e => e.type==='New Center'||e.type==='Ongoing');
+
+      // Programs from categories + events
+      const progs = new Set((c.categories||[]).map(p=>p.trim()).filter(Boolean));
+      evs.forEach(e => { const n=normaliseActivity(e.activity); if(n) progs.add(n); });
+
+      // Session counts per program
+      const sessCount = {};
+      evs.forEach(e => { const n=normaliseActivity(e.activity); if(n) sessCount[n]=(sessCount[n]||0)+1; });
+
+      // Coaches
+      const coaches = (c.coaches||[]).map(ch=>ch.label||ch.value).filter(Boolean);
+
+      // State
+      const state = c.city ||
+        (c.address ? (c.address.match(/\b(VIC|NSW|QLD|WA|SA|TAS|ACT|NT)\b/)||[])[1] : null) ||
+        'Unknown';
+
+      // Next session
+      const upcoming = evs
+        .filter(e => { const d=toDate(e.start); return d&&d>now; })
+        .sort((a,b)=>toDate(a.start)-toDate(b.start))[0];
+
+      // Last session
+      const past = evs
+        .filter(e => e.sessionStatus==='Attended')
+        .sort((a,b)=>toDate(b.start)-toDate(a.start))[0];
+
+      return {
+        ...c, state,
+        programs: [...progs],
+        sessCount,
+        totalSessions: evs.length,
+        coaches,
+        lat: c.addressGeo?.lat||null,
+        lng: c.addressGeo?.lng||null,
+        nextSession: upcoming ? toDate(upcoming.start) : null,
+        lastSession: past    ? toDate(past.start)    : null,
+      };
+    });
+}
+
+function toDate(v) {
+  if (!v) return null;
+  if (v.toDate) return v.toDate();
+  if (v.seconds) return new Date(v.seconds*1000);
+  return new Date(v);
+}
+
+// ── FILTER ────────────────────────────────────────────────────────────────────
+function getFiltered() {
+  const search = (document.getElementById('search-input')?.value||'').toLowerCase();
+  return RAW.filter(c => {
+    if (activeState!=='ALL' && c.state!==activeState) return false;
+    if (activeProg && !c.programs.includes(activeProg)) return false;
+    if (search && !c.name?.toLowerCase().includes(search) && !c.coaches.join(' ').toLowerCase().includes(search)) return false;
+    return true;
+  });
+}
+
+// ── MAP ───────────────────────────────────────────────────────────────────────
+function initMap() {
+  const AUSTRALIA_BOUNDS = L.latLngBounds(
+    L.latLng(-44.5, 113.0),
+    L.latLng(-10.0, 154.0)
+  );
+
+  MAP = L.map('map', {
+    zoomControl: true,
+    scrollWheelZoom: true,
+    maxBounds: AUSTRALIA_BOUNDS,
+    maxBoundsViscosity: 1.0,
+    minZoom: 4,
+    maxZoom: 16
+  }).fitBounds(AUSTRALIA_BOUNDS);
+
+  L.tileLayer('https://{s}.basemaps.cartocdn.com/rastertiles/voyager/{z}/{x}/{y}{r}.png', {
+    attribution:'© OpenStreetMap © CARTO',
+    subdomains:'abcd',
+    maxZoom:19
+  }).addTo(MAP);
+
+  // Mask surrounding regions with sky-blue overlay rectangles
+  // Top (above Australia)
+  L.rectangle([[-8.0,110.0],[10.0,160.0]],  {color:'none',fillColor:'#29ABE2',fillOpacity:1,interactive:false}).addTo(MAP);
+  // Left (west of Australia)
+  L.rectangle([[-48.0,0.0],[10.0,112.5]],   {color:'none',fillColor:'#29ABE2',fillOpacity:1,interactive:false}).addTo(MAP);
+  // Right (east of Australia)
+  L.rectangle([[-48.0,154.5],[10.0,180.0]],  {color:'none',fillColor:'#29ABE2',fillOpacity:1,interactive:false}).addTo(MAP);
+  // Bottom (below Australia)
+  L.rectangle([[-90.0,0.0],[-45.0,180.0]],  {color:'none',fillColor:'#29ABE2',fillOpacity:1,interactive:false}).addTo(MAP);
+  // PNG / Indonesia top-right gap
+  L.rectangle([[-9.0,130.0],[5.0,160.0]],   {color:'none',fillColor:'#29ABE2',fillOpacity:1,interactive:false}).addTo(MAP);
+  // NZ
+  L.rectangle([[-48.0,163.0],[-33.0,180.0]],{color:'none',fillColor:'#29ABE2',fillOpacity:1,interactive:false}).addTo(MAP);
+
+  markerLayer = L.layerGroup().addTo(MAP);
+}
+
+function makeIcon(centre) {
+  const progs = centre.programs;
+  const color = progs.length === 1 ? (PROG_COLORS[progs[0]]||'#333')
+              : progs.length > 1  ? '#1a1a2e'
+              : '#888';
+  const size = centre.status==='New Center' ? 18 : 14;
+  return L.divIcon({
+    className:'',
+    html:`<div style="
+      width:${size}px;height:${size}px;border-radius:50%;
+      background:${color};border:2.5px solid #fff;
+      box-shadow:0 2px 6px rgba(0,0,0,0.4);
+      position:relative;
+    "></div>`,
+    iconSize:[size,size],
+    iconAnchor:[size/2,size/2],
+    popupAnchor:[0,-(size/2+4)]
+  });
+}
+
+function updateMarkers() {
+  markerLayer.clearLayers();
+  markers = [];
+
+  const filtered = getFiltered();
+  const withCoords = filtered.filter(c => c.lat && c.lng);
+
+  withCoords.forEach(centre => {
+    const icon = makeIcon(centre);
+    const marker = L.marker([centre.lat, centre.lng], {icon});
+
+    const progTagsHtml = centre.programs.map(p =>
+      `<span class="ctag ctag-${p.toLowerCase()}" style="font-size:10px;padding:2px 7px">${p}</span>`
+    ).join('');
+    const statusTag = centre.status==='New Center'
+      ? `<span class="ctag ctag-new" style="font-size:10px;padding:2px 7px">New</span>`
+      : `<span class="ctag ctag-ongoing" style="font-size:10px;padding:2px 7px">Ongoing</span>`;
+    const coachStr = centre.coaches.length ? centre.coaches[0] : 'No coach assigned';
+    const nextStr = centre.nextSession
+      ? centre.nextSession.toLocaleDateString('en-AU',{day:'numeric',month:'short'}) : '—';
+
+    marker.bindPopup(`
+      <div class="popup-name">${centre.name||'Unnamed'}</div>
+      <div class="popup-meta">${centre.state} · ${centre.directorName||'—'}</div>
+      <div class="popup-tags">${statusTag}${progTagsHtml}</div>
+      <div class="popup-coach">👤 ${coachStr}</div>
+      <div class="popup-coach" style="margin-top:3px">📅 Next: ${nextStr}</div>
+      <button class="popup-btn" onclick="window.openDetail('${centre.id}')">View details</button>
+    `, { maxWidth:260 });
+
+    marker.on('click', () => {
+      highlightSidebarItem(centre.id);
+    });
+
+    marker._centreId = centre.id;
+    markerLayer.addLayer(marker);
+    markers.push(marker);
+  });
+}
+
+function highlightSidebarItem(id) {
+  selectedId = id;
+  document.querySelectorAll('.citem').forEach(el => el.classList.remove('selected'));
+  const el = document.querySelector(`.citem[data-id="${id}"]`);
+  if (el) {
+    el.classList.add('selected');
+    el.scrollIntoView({behavior:'smooth', block:'nearest'});
+  }
+}
+
+// ── SIDEBAR ───────────────────────────────────────────────────────────────────
+function updateSidebar() {
+  const filtered = getFiltered();
+  filtered.sort((a,b)=>(a.name||'').localeCompare(b.name||''));
+
+  document.getElementById('sidebar-count').textContent =
+    `${filtered.length} centre${filtered.length!==1?'s':''}`;
+
+  const list = document.getElementById('centre-list');
+  list.innerHTML = '';
+
+  filtered.forEach(c => {
+    const item = document.createElement('div');
+    item.className = `citem ${c.status==='New Center'?'new-center':''} ${c.id===selectedId?'selected':''}`;
+    item.dataset.id = c.id;
+
+    const progTags = c.programs.map(p =>
+      `<span class="ctag ctag-${p.toLowerCase()}">${p}</span>`
+    ).join('');
+    const statusTag = c.status==='New Center'
+      ? `<span class="ctag ctag-new">New</span>`
+      : `<span class="ctag ctag-ongoing">Ongoing</span>`;
+    const noCoach = !c.coaches.length ? `<span class="ctag ctag-nocoach">No coach</span>` : '';
+    const coachStr = c.coaches.length ? c.coaches.slice(0,1).join(', ') : '';
+    const nextStr = c.nextSession
+      ? c.nextSession.toLocaleDateString('en-AU',{day:'numeric',month:'short'}) : '—';
+
+    item.innerHTML = `
+      <div class="citem-name">${c.name||'Unnamed Centre'}</div>
+      <div class="citem-meta">${c.state}${coachStr?' · '+coachStr:''} · Next: ${nextStr}</div>
+      <div class="citem-tags">
+        <span class="ctag ctag-state">${c.state}</span>
+        ${statusTag}${progTags}${noCoach}
+      </div>
+    `;
+
+    item.addEventListener('click', () => {
+      // Pan map to this centre
+      if (c.lat && c.lng) {
+        MAP.setView([c.lat, c.lng], 13, {animate:true});
+        const m = markers.find(mk => mk._centreId===c.id);
+        if (m) { m.openPopup(); }
+      }
+      highlightSidebarItem(c.id);
+      showDetail(c);
+    });
+
+    list.appendChild(item);
+  });
+}
+
+// ── STAT PILLS ────────────────────────────────────────────────────────────────
+function updateTopBar() {
+  const filtered = getFiltered();
+  document.getElementById('hero-num').textContent = filtered.length;
+  document.getElementById('hero-label').textContent =
+    activeState==='ALL' ? 'Active Centres' : `Active Centres · ${activeState}`;
+
+  // State pills
+  const stateCounts = {};
+  RAW.forEach(c => { stateCounts[c.state]=(stateCounts[c.state]||0)+1; });
+  const states = Object.keys(stateCounts).filter(s=>s!=='Unknown').sort();
+
+  const sp = document.getElementById('state-pills');
+  sp.innerHTML = `<div class="spill spill-all ${activeState==='ALL'?'active':''}" data-state="ALL">All</div>` +
+    states.map(s =>
+      `<div class="spill ${activeState===s?'active':''}" data-state="${s}">${s}: ${stateCounts[s]}</div>`
+    ).join('');
+  sp.querySelectorAll('.spill').forEach(el => {
+    el.addEventListener('click', () => {
+      activeState = el.dataset.state;
+      refresh();
+      zoomToState(activeState);
+    });
+  });
+
+  // Program pills — show centre count
+  const pp = document.getElementById('prog-pills');
+  pp.innerHTML = PROGRAMS.map(p => {
+    const cnt = RAW.filter(c=>c.programs.includes(p)).length;
+    const filtCnt = filtered.filter(c=>c.programs.includes(p)).length;
+    return `<div class="ppill ppill-${p.toLowerCase()} ${activeProg===p?'active':''}" data-prog="${p}">${p} · ${filtCnt}</div>`;
+  }).join('');
+  pp.querySelectorAll('.ppill').forEach(el => {
+    el.addEventListener('click', () => {
+      activeProg = activeProg===el.dataset.prog ? '' : el.dataset.prog;
+      refresh();
+    });
+  });
+}
+
+// ── DETAIL ────────────────────────────────────────────────────────────────────
+window.openDetail = function(id) {
+  const c = RAW.find(x=>x.id===id);
+  if (c) showDetail(c);
+};
+
+function showDetail(c) {
+  const el = document.getElementById('detail-content');
+  const progTags = c.programs.map(p =>
+    `<span class="ctag ctag-${p.toLowerCase()}" style="padding:3px 10px;font-size:11px">${p}</span>`
+  ).join('');
+  const startStr = c.startDate ? new Date(c.startDate).toLocaleDateString('en-AU',{day:'numeric',month:'short',year:'numeric'}) : '—';
+  const nextStr  = c.nextSession ? c.nextSession.toLocaleDateString('en-AU',{day:'numeric',month:'short',year:'numeric'}) : '—';
+  const lastStr  = c.lastSession ? c.lastSession.toLocaleDateString('en-AU',{day:'numeric',month:'short',year:'numeric'}) : '—';
+
+  const sessByProg = Object.entries(c.sessCount||{})
+    .map(([p,n])=>`<span class="ctag ctag-${p.toLowerCase()}" style="padding:3px 9px;font-size:10px">${p}: ${n}</span>`).join('');
+
+  el.innerHTML = `
+    <div class="detail-name">${c.name||'Unnamed Centre'}</div>
+    <div class="detail-addr">${c.address||'—'}</div>
+    <div class="drow"><span class="dlabel">State</span><span class="dval">${c.state}</span></div>
+    <div class="drow"><span class="dlabel">Status</span><span class="dval">${c.status}</span></div>
+    <div class="drow"><span class="dlabel">Director</span><span class="dval">${c.directorName||'—'}</span></div>
+    <div class="drow"><span class="dlabel">Email</span><span class="dval" style="font-size:11px">${c.email||'—'}</span></div>
+    <div class="drow"><span class="dlabel">Phone</span><span class="dval">${c.phone||'—'}</span></div>
+    <div class="drow"><span class="dlabel">Programs</span><span class="dval"><div class="dtags">${progTags||'—'}</div></span></div>
+    <div class="drow"><span class="dlabel">Sessions</span><span class="dval"><div class="dtags">${sessByProg||'—'}</div></span></div>
+    <div class="drow"><span class="dlabel">Coach(es)</span><span class="dval">${c.coaches.join(', ')||'None assigned'}</span></div>
+    <div class="drow"><span class="dlabel">Start date</span><span class="dval">${startStr}</span></div>
+    <div class="drow"><span class="dlabel">Last session</span><span class="dval">${lastStr}</span></div>
+    <div class="drow"><span class="dlabel">Next session</span><span class="dval">${nextStr}</span></div>
+    ${c.studentCount&&c.studentCount!=='0'?`<div class="drow"><span class="dlabel">Students</span><span class="dval">${c.studentCount}</span></div>`:''}
+    ${c.notes?`<div class="drow" style="flex-direction:column;align-items:flex-start;gap:4px"><span class="dlabel">Notes</span><span style="font-size:11px;color:rgba(255,255,255,0.7);font-weight:600;line-height:1.5;margin-top:2px">${c.notes.slice(0,300)}</span></div>`:''}
+  `;
+  document.getElementById('detail-overlay').classList.add('open');
+}
+
+// ── REFRESH ───────────────────────────────────────────────────────────────────
+const STATE_BOUNDS = {
+  VIC: [[-39.2,140.9],[-33.9,150.0]],
+  NSW: [[-37.5,140.9],[-28.0,153.6]],
+  QLD: [[-29.2,137.9],[-10.0,153.6]],
+  WA:  [[-35.1,113.0],[-13.7,129.0]],
+  SA:  [[-38.1,129.0],[-26.0,141.0]],
+  TAS: [[-43.7,143.8],[-39.5,148.5]],
+  NT:  [[-26.0,129.0],[-11.0,138.0]],
+  ACT: [[-35.9,148.7],[-35.1,149.4]]
+};
+
+function zoomToState(state) {
+  if (!MAP) return;
+  if (state === 'ALL') {
+    MAP.fitBounds([[-44.5,113.0],[-10.0,154.0]], {animate:true, padding:[20,20]});
+  } else if (STATE_BOUNDS[state]) {
+    MAP.fitBounds(STATE_BOUNDS[state], {animate:true, padding:[40,40]});
+  }
+}
+
+function refresh() {
+  updateTopBar();
+  updateMarkers();
+  updateSidebar();
+}
+
+function updateLastUpdated() {
+  let secs = 0;
+  clearInterval(window._tick);
+  window._tick = setInterval(() => {
+    secs += 10;
+    const el = document.getElementById('last-updated');
+    if (!el) return;
+    el.textContent = secs < 60 ? 'Updated just now'
+      : secs < 120 ? 'Updated 1 min ago'
+      : `Updated ${Math.floor(secs/60)} mins ago`;
+  }, 10000);
+  const el = document.getElementById('last-updated');
+  if (el) el.textContent = 'Updated just now';
+}
+
+async function fullRefresh() {
+  const btn = document.getElementById('refresh-btn');
+  if (btn) btn.classList.add('spinning');
+  try {
+    await loadRaw();
+    refresh();
+    updateLastUpdated();
+  } finally {
+    if (btn) btn.classList.remove('spinning');
+  }
+}
+
+function startAutoRefresh() {
+  clearInterval(autoTimer);
+  autoTimer = setInterval(fullRefresh, 10*60*1000);
+}
+
+// ── AUTH ──────────────────────────────────────────────────────────────────────
+onAuthStateChanged(auth, async user => {
+  if (user) {
+    document.getElementById('login-screen').style.display = 'none';
+    const appEl = document.getElementById('app');
+    appEl.style.display = 'flex';
+
+    initMap();
+    await loadRaw();
+    refresh();
+    updateLastUpdated();
+    startAutoRefresh();
+    document.getElementById('map-loading').style.display = 'none';
+  } else {
+    document.getElementById('login-screen').style.display = 'flex';
+    document.getElementById('app').style.display = 'none';
+    clearInterval(autoTimer);
+  }
+});
+
+document.getElementById('login-btn').addEventListener('click', async () => {
+  const err = document.getElementById('login-err');
+  err.style.display = 'none';
+  try { await signInWithEmailAndPassword(auth, document.getElementById('em').value, document.getElementById('pw').value); }
+  catch(e) { err.textContent = 'Invalid email or password.'; err.style.display = 'block'; }
+});
+document.getElementById('pw').addEventListener('keydown', e => { if(e.key==='Enter') document.getElementById('login-btn').click(); });
+document.getElementById('signout-btn').addEventListener('click', () => { clearInterval(autoTimer); signOut(auth); });
+document.getElementById('refresh-btn').addEventListener('click', fullRefresh);
+document.getElementById('search-input').addEventListener('input', refresh);
+document.getElementById('detail-close').addEventListener('click', () => document.getElementById('detail-overlay').classList.remove('open'));
+document.getElementById('detail-overlay').addEventListener('click', e => { if(e.target.id==='detail-overlay') document.getElementById('detail-overlay').classList.remove('open'); });
+</script>
+</body>
+</html>
