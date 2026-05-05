@@ -155,6 +155,9 @@ label{font-size:10px;font-weight:700;color:#888;display:block;margin-bottom:3px;
 </div>
 
 <div class="view" id="view-coaches">
+  <div style="margin-bottom:10px">
+    <input type="text" id="coachSearch" placeholder="🔍 Search coaches by name..." oninput="renderCoaches()" style="width:100%;padding:10px 14px;border:1px solid #E0E0E0;border-radius:8px;font-size:14px;font-family:inherit;outline:none;box-sizing:border-box">
+  </div>
   <div class="filt" id="sfilt">
     <button class="sf on" onclick="fst('all',this)">All States</button>
     <button class="sf" onclick="fst('VIC',this)">VIC</button>
@@ -428,14 +431,20 @@ function buildCard(c) {
 }
 
 function renderCoaches() {
-  var list = activeState === "all" ? COACHES : [];
-  if (activeState !== "all") {
-    for (var i = 0; i < COACHES.length; i++) {
-      if (COACHES[i].state === activeState) list.push(COACHES[i]);
-    }
+  var searchEl = document.getElementById("coachSearch");
+  var q = searchEl ? searchEl.value.trim().toLowerCase() : "";
+  var list = [];
+  for (var i = 0; i < COACHES.length; i++) {
+    var c = COACHES[i];
+    if (activeState !== "all" && c.state !== activeState) continue;
+    if (q && (c.name || "").toLowerCase().indexOf(q) === -1) continue;
+    list.push(c);
   }
   var html = "";
   for (var i = 0; i < list.length; i++) html += buildCard(list[i]);
+  if (!list.length) {
+    html = '<div style="grid-column:1/-1;text-align:center;padding:24px;color:#888;font-size:13px">No coaches match your filters.</div>';
+  }
   document.getElementById("cgrid").innerHTML = html;
 }
 
